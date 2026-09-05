@@ -1,30 +1,101 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>CS 280A - Project 0</title>
+
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <h1>Becoming Friends with Your Camera</h1>
+    <header>
+        <h1>CS 280A: Intro to Computer Vision and Computational Photography</h1>
+        <p>Project 0 · UC Berkeley · Fall 2026</p>
+    </header>
 
-    <h2>Project 0</h2>
+    <main>
 
-    <p>
-        Here is my first project for CS 280 A : Intro to Computer Vision and Computational Photography
-    </p>
+        <section>
+            <h2>Selfie: The Wrong Way vs. The Right Way</h2>
 
-    <h2>Results</h2>
+            <div class="image-row three-images">
 
-    <p>
-        Below are the results of my computational photography project.
-    </p>
+                <div class="image-container">
+                    <img src="images/Varun/IMG_1673.jpeg" alt="Varun photographed from 20 centimeters">
+                    <p class="caption">Varun from 20 centimeters.</p>
+                </div>
 
-    <!-- Add your images here -->
-    <img src="images/result1.jpg" alt="Project result 1" width="500">
-    <img src="images/result2.jpg" alt="Project result 2" width="500">
+                <div class="image-container">
+                    <img src="images/Varun/IMG_1674.jpeg" alt="Varun photographed from 40 centimeters">
+                    <p class="caption">Varun from 40 centimeters.</p>
+                </div>
+
+                <div class="image-container">
+                    <img src="images/Varun/IMG_1679.jpeg" alt="Varun photographed from 2 meters">
+                    <p class="caption">Varun from 2 meters.</p>
+                </div>
+
+            </div>
+
+            <p class="description">
+                While stepping away from Varun,
+                 the relative distance between the camera and the rest
+                of his face becomes closer to the distance between the camera and the center
+                of his face. This explains why the further away the camera is, the more natural
+                the image appears.
+            </p>
+
+        </section>
+
+
+        <section>
+            <h2>Architectural Perspective Compression</h2>
+
+            <div class="image-row two-images">
+
+                <div class="image-container">
+                    <img src="images/toyota.jpeg" alt="Toyota Berkeley photographed from far away">
+                    <p class="caption">Toyota Berkeley from far away.</p>
+                </div>
+
+                <div class="image-container">
+                    <img src="images/toyota_zoom.jpeg" alt="Toyota Berkeley photographed up close">
+                    <p class="caption">Toyota Berkeley from up close.</p>
+                </div>
+
+            </div>
+
+            <p class="description">
+                In the first picture the car dealership looks flattened because, similarly to the pictures of Varun, 
+                the relative distances between the different parts of the building and the camera are more similar when viewed from far away. 
+                Whereas from up close, the relative distance between the different parts of the building and the camera aren't relatively as close.
+            
+             
+            </p>
+
+        </section>
+
+
+        <section>
+            <h2>Dolly Zoom <span>!!!</span></h2>
+
+            <div class="single-image">
+                <img class="gif" src="images/dolly_zoom.gif" alt="Dolly zoom animation">
+                <p class="caption">Pictures taken while moving the camera back and zooming in.</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer>
+        <p>CS 280A · Computational Photography · UC Berkeley</p>
+    </footer>
 
 </body>
 </html>
+
