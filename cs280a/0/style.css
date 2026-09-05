@@ -11,9 +11,6 @@ body {
     line-height: 1.7;
 }
 
-
-/* ---------- Header ---------- */
-
 header {
     padding-bottom: 30px;
     margin-bottom: 50px;
@@ -55,9 +52,6 @@ h2 span {
     font-size: 0.9em;
 }
 
-
-/* ---------- Image Layout ---------- */
-
 .image-row {
     display: grid;
     gap: 25px;
@@ -72,8 +66,18 @@ h2 span {
     grid-template-columns: repeat(2, 1fr);
 }
 
+.back-button {
+    display: inline-block;
+    margin-bottom: 30px;
+    color: #666;
+    text-decoration: none;
+    font-size: 14px;
+}
 
-/* ---------- Images ---------- */
+.back-button:hover {
+    color: #222;
+    text-decoration: underline;
+}
 
 .image-container {
     text-align: center;
