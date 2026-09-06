@@ -1,1 +1,1 @@
-# flazes.github.io
+# https://flazes.github.io
