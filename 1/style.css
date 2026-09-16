@@ -1,0 +1,259 @@
+body {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 50px 30px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    color: #222;
+    background: #dae1e8;
+    line-height: 1.7;
+}
+
+header {
+    padding-bottom: 30px;
+    margin-bottom: 50px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+header h1 {
+    margin: 0 0 8px 0;
+    font-size: 32px;
+    line-height: 1.25;
+    font-weight: 650;
+}
+
+header p {
+    margin: 0;
+    font-size: 16px;
+    color: #777;
+}
+
+.back-button {
+    display: inline-block;
+    margin-bottom: 30px;
+    color: #666;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.back-button:hover {
+    color: #222;
+    text-decoration: underline;
+}
+
+section {
+    margin-bottom: 60px;
+}
+
+h2 {
+    margin: 0 0 20px 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.description {
+    max-width: 850px;
+    font-size: 16px;
+    color: #444;
+}
+
+footer {
+    padding-top: 25px;
+    border-top: 1px solid #e5e5e5;
+    text-align: center;
+    font-size: 13px;
+    color: #888;
+}
+
+.overview {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 40px;
+    align-items: start;
+}
+
+.overview-text p {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+
+.pyramid-image {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+}
+
+.caption a {
+    color: #777;
+    text-decoration: underline;
+}
+
+.caption a:hover {
+    color: #222;
+}
+
+.overview-image {
+    width: 200px;
+    margin: 0 auto;
+}
+
+.overview-image img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid #e2e2e2;
+}
+
+.four-images {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+}
+
+.pyramid-overview {
+    grid-template-columns: 0.6fr 1.8fr;
+}
+
+.four-images img {
+    max-height: 350px;
+    object-fit: contain;
+}
+
+.fourteen-images {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 35px 30px;
+}
+.fourteen-images {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 35px 30px;
+}
+
+.fourteen-images img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.caption {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+}
+
+@media (max-width: 700px) {
+    .fourteen-images {
+        grid-template-columns: 1fr;
+    }
+}   
+@media (max-width: 700px) {
+    .overview {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .four-images {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .four-images {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .before-after {
+        grid-template-columns: 1fr;
+    }
+}
+
+.before-after {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    margin-top: 30px;
+}
+
+.before-after img {
+    width: 100%;
+    max-width: 450px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.three-images {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.three-images img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.large-image {
+    width: 60%;
+    margin: 40px auto 0;
+}
+
+.large-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+@media (max-width: 700px) {
+    .three-images {
+        grid-template-columns: 1fr;
+    }
+
+    .large-image {
+        width: 100%;
+    }
+}
+
+.four-images {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.four-images img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.two-images {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    width: 75%;
+    margin: 40px auto 0;
+}
+
+.two-images img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+@media (max-width: 700px) {
+    .four-images {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .two-images {
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+}

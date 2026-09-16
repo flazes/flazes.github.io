@@ -3,28 +3,566 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CS 280A - Computational Photography</title>
+    <title>CS 280A - Project 1</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+MathJax = {
+    tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+    }
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 
 <body>
 
-    <h1>CS 280A: Computational Photography</h1>
+    <a href="../index.html" class="back-button">← Back to CS 280A Projects</a>
 
-    <h2>Project 1</h2>
+    <header>
+        <h1> Project 1 : Colorizing photos of the Russian Empire </h1>
+        <p>CS 280A · UC Berkeley · Fall 2026</p>
+    </header>
 
-    <p>
-        My first project for CS 280A at UC Berkeley.
+    <main>
+
+<section>
+    <h2>Project Overview</h2>
+
+    <div class="overview">
+        <div class="overview-text">
+            <p>
+Sergei Mikhailovich Prokudin-Gorskii traveled the Russian Empire in the early 20th Century, and recorded the exposure of every scene onto a glass plate,
+     using three different filters: a red, a green, a blue one. In this project, I used those negatives to retrieve colored images.
+            </p>
+<p>
+    The main objective of this project is to align the color channel images
+    and combine them to form a single RGB color image. For simple images, I
+    divided the negative into three distinct negatives. The first one represents the
+    blue channel, the second the green channel, and the third the red channel. 
+</p>
+<h2> Single Scale Alignment </h2>
+<p>
+    For simple and lower-quality images, I searched over a displacement window
+    of $[-15,15]$ pixels in height and width. By superposing two color channels
+    and computing a matching score, I was able to find the best match and
+    achieve precise alignment. The score I used is the Euclidean distance (L2 score):
+
+    $$ 
+    d(I_1,I_2) = \sqrt{\sum_{x,y}(I_1(x,y)-I_2(x,y))^2}
+    $$
+
+    The smaller the distance between the two channel images, the more similar
+    they are. Once all scores in that window are computed, the lowest score is
+    kept. The three channels are then aligned and stacked on top of each other
+    to produce a proper RGB image. I used <code>np.roll</code> along the y-axis and x-axis to displace the green and blue channels 
+    to align with the blue one, which is the one at the top of the original data. 
+    The score is not computed on the border of the 
+    images to avoid dark borders on two channels yielding a very low score.  
+
     </p>
+        </div>
 
-    <h2>Results</h2>
+        <div class="overview-image">
+            <img src="img/forest_negative.jpg" alt="Example film negative">
+            <p class="caption">Example of a film negative used in the project.</p>
+        </div>
+    </div>
+</section>
 
-    <p>
-        Below are the results of my computational photography project.
+    <section>
+            <h2>Low Resolution Images </h2>
+
+             <div class="image-row four-images">
+        <div class="image-container">
+            <img src="img/unaligned_melons.jpg" alt="Unaligned color channels">
+            <p class="caption">Unaligned channels.</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/cathedral.jpg" alt="Blue channel aligned">
+            <p class="caption">y,x shift for blue channel :  (-12, -3)
+y,x shift for green channel:  (-7, -1)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/monastery.jpg" alt="Green channel aligned">
+            <p class="caption">y,x shift for blue channel :  (-3, -2)
+y,x shift for green channel:  (-6, -1)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/tobolsk.jpg" alt="Red channel aligned">
+            <p class="caption">y,x shift for blue channel :  (-3, -2)
+y,x shift for green channel:  (-6, -1)</p>
+        </div>
+    </div>
+
+        </section>
+        <section>
+
+            <h2>Multi-scale Pyramid Alignment  </h2>
+            
+            <div class="overview pyramid-overview">
+                        <div class="overview-image pyramid-image">
+                        <img src="img/pyramid.png" alt="Multi-scale image pyramid">
+                        <p class="caption">Multi-scale image pyramid
+                            <a href="https://iipimage.sourceforge.io/documentation/images" target="_blank">Source</a>
+                        </p>
+                    </div>
+                <p>
+
+            The best quality data provided in <code>.tif</code> files were much larger, and 
+            computing the L2 distance over the same displacement window as for the previous photos 
+            would be computationally expensive. In order to save time without losing precision, 
+            I used a multi-scale pyramid alignment technique instead.
+            <br><br>
+
+            The image pyramid represents the same image at multiple scales. By starting at the 
+            smallest scaling factor, the image quality is low enough to apply the algorithm 
+            mentioned earlier over the same displacement window ($[-15,15]$).
+
+            <br><br>
+
+            At the end of this first rescale, the same algorithm is called recursively with the 
+            current best shift in pixels and the current scaling factor as arguments. By 
+            multiplying the scaling factor by 2 ($1/16 \rightarrow 1/8 \rightarrow 1/4 
+            \rightarrow 1/2 \rightarrow 1$), the shift in pixels is also multiplied by 2. 
+
+                            </p>
+            </div>
+            
+            This allows the algorithm to determine the region in which to search for the 
+            alignment, reducing both the size of the displacement window and the computational time.
+
+            For the base case, when the scaling factor is 1 (original image size), the algorithm 
+            returns the shifted image that yields the best L2 similarity score.
+
+            Then, similarly to the single-scale algorithm, the different channels are stacked 
+            using their respective colors to produce a final RGB image.
+            <br><br>
+            For this multi-scale alignment, 
+            I decided to align the red and blue channels on the green one, compared to aligning on the blue one for the low image quality alignment.
+            I found that using the green channel as the reference gave better results in my experiments.  
+
+                </p>
+            </div>
+
+            <div>
+                <h2> Results of Multi-scale Alignment  </h2>
+            </div>
+            <div class="fourteen-images">
+
+        
+    <div class="image-container">
+        <img src="img/church_16.jpg" alt="Result 1">
+        <p class="caption">y,x shift for blue channel : (-25, -4)
+y,x shift for red channel : (33, -8).</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/emir_16.jpg" alt="Result 2">
+        <p class="caption">y,x shift for blue channel : (-49, -24)
+y,x shift for red channel : (57, 17)</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/harvesters_16.jpg" alt="Result 3">
+        <p class="caption">y,x shift for blue channel : (-59, -17)
+y,x shift for red channel : (65, -3)</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/icon_16.jpg" alt="Result 4">
+        <p class="caption">y,x shift for blue channel : (-41, -17)
+y,x shift for red channel : (48, 5)</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/ilemselga_16.jpg" alt="Result 5">
+        <p class="caption">lue rolls : (-40, -7)
+y,x shift for red channel : (91, 4)</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/melons_16.jpg" alt="Result 6">
+        <p class="caption">y,x shift for blue channel : (-82, -11)
+y,x shift for red channel : (96, 3)</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/wharf_16.jpg" alt="Result 7">
+        <p class="caption">y,x shift for blue channel : (-15, 6)
+y,x shift for red channel : (67, -9)</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/religous_painting_16.jpg" alt="Result 8">
+        <p class="caption">y,x shift for blue channel : (-29, -3)
+y,x shift for red channel : (41, 4)</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/self_portrait_16.jpg" alt="Result 9">
+        <p class="caption">y,x shift for blue channel : (-50, 5)
+y,x shift for red channel : (47, -19)</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/siren_16.jpg" alt="Result 10">
+        <p class="caption">y,x shift for blue channel : (-50, 5)
+y,x shift for red channel : (47, -19)</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/three_generations_16.jpg" alt="Result 11">
+        <p class="caption">y,x shift for blue channel : (-52, -14)
+y,x shift for red channel : (59, -3)</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/forest_16.jpg" alt="Result 12">
+        <p class="caption">y,x shift for blue channel : (-24, 0)
+y,x shift for red channel : (51, 3)</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/jesus_16.jpg" alt="Result 13">
+        <p class="caption">y,x shift for blue channel : (-70, -26)
+y,x shift for red channel : (73, 10)</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/train_16.jpg" alt="Result 14">
+        <p class="caption">y,x shift for blue channel : (-43, -6)
+y,x shift for red channel : (43, 26)</p>
+    </div>
+</div>
+        </section>
+
+            <section>
+        <h2>Extra Bells and Whistles</h2>
+
+
+        <h3> Automatic Cropping</h3>
+    <div>
+        <p>
+        In the original data, there are already white and black borders around the images. After alignment, these existing 
+        borders become misaligned, creating colored borders and edges where one or more color channels are missing. I implemented 
+        automatic cropping to remove these artifacts.
+        </p>
+        <p>
+
+        I wanted to detect horizontal and vertical lines near the edges of the images and assume that they corresponded to borders.
+         To do this, I computed the average intensity of the three color channels for each row and column. I then used <code>np.diff</code>
+          on these averages to find regions with the largest changes in intensity, which could indicate a horizontal or vertical border. I 
+          kept the 50 strongest candidate coordinates within the outer 20% of the image. This process was performed on each channel before 
+          alignment.
     </p>
+        <p>
+        Once the alignment shift for each channel was known, I applied the same shift to the coordinates of the detected lines. This gave 
+        the corresponding line coordinates in the final aligned image. I then defined a margin of approximately 1/13 of the final image on 
+        each side and selected the detected line closest to the edge while still falling within this margin.
+                </p>
+        <p>
+        For example, if the left margin is at $x=230$ and the detected lines are at $x=150$, $x=210$, and $x=240$, the image would be 
+        cropped at $x=210$, since it is the closest detected border that falls within the margin.
+            
+        </p>
 
-    <!-- Add your images here -->
-    <img src="images/result1.jpg" alt="Project result 1" width="500">
-    <img src="images/result2.jpg" alt="Project result 2" width="500">
+        <div class="before-after">
+            <div class="image-container">
+                <img src="img/church_16.jpg" alt="Before applying the improvement">
+                <p class="caption">Before</p>
+            </div>
+
+            <div class="image-container">
+                <img src="img/extra/church_cropped.jpg" alt="After applying the improvement">
+                <p class="caption">After</p>
+            </div>
+        </div>
+
+
+        <div>
+            <h3> Automatic Contrasting </h3>
+        <p>
+            As seen above, the colors of the aligned images can appear bland. Specifically, what should appear 
+            white in the images can appear a bit darker; similarly for black colors that don't appear as black 
+            as they should. To counter this, I decided to add more contrast by rescaling the lightness of the images.
+
+            <br></br>
+
+            To do so, I used OpenCV's library to convert the image to LAB color space. This color space has a value 
+            that represents the lightness of a pixel, ranging from 0 to 100 (0 to 255 when stored by OpenCV).
+
+            <br></br>
+
+            I then apply a linear interpolation to this lightness value, so that the lightness value at the 1st
+            percentile is mapped to 0.0 and the lightness value at the 99th percentile is mapped to 255.0. Every 
+            other value is scaled accordingly.
+
+
+            $$
+            L_{\mathrm{rescaled}} =
+            \frac{L - p_1}{p_{99} - p_1} \times 255
+            $$
+
+            where $L$ is the original lightness value, and $p_1$ and $p_{99}$ are the 1st and 99th percentiles of the lightness values.
+
+            <br></br>
+
+            In the following image, the 1st percentile of lightness is 47.0 and the 99th percentile is 240.0. In the second image, after rescaling, they are 0.0 and 255.0, respectively.
+            The dark parts of the images appear darker while staying natural.
+            
+            
+        </p>
+
+        <div class="before-after">
+            <div class="image-container">
+                <img src="img/extra/melons_before_contrast.jpg" alt="Before applying the improvement">
+                <p class="caption"> <code> p1 = 47.0,  p99 = 240.0 </code></p>
+            </div>
+
+            <div class="image-container">
+                <img src="img/extra/melons_after_contrast.jpg" alt="After applying the improvement.">
+                <p class="caption"><code> p1 = 0.0,  p99 = 255.0 </code>  </p>
+            </div>
+        </div>
+    </div>
+        <div>
+            <h3> Automatic White Balance </h3>
+        <p>
+        Despite the added automatic contrast, what should appear white may appear in different 
+        colors once aligned. This can be due to the different sources of light present at the 
+        moment the picture was taken.
+
+        For example, what should appear very light gray and tend toward white might 
+        have an expected value around $(25,25,25)$. However, due to the lighting conditions,
+        it could instead have a value such as $(23,23,30)$, which gives the image a slight blue tint.
+
+<br></br>
+            To counter this, I estimated that the illuminant (source of light) was represented by the average color of the cropped image.
+
+            I took the average value of each color channel: $\bar R$, $\bar G$, and $\bar B$.
+
+            I then computed the target RGB value as the average of the three channel means:
+
+            $$
+            T = \frac{\bar R + \bar G + \bar B}{3}
+            $$
+
+            Finally, I corrected each channel by multiplying it by the ratio between the target value and its original channel mean:
+
+            $$
+            R' = R \times \frac{T}{\bar R},
+            \qquad
+            G' = G \times \frac{T}{\bar G},
+            \qquad
+            B' = B \times \frac{T}{\bar B}
+            $$
+
+            This brings the average value of each color channel toward the same target value, reducing the color tint caused by the lighting conditions.
+
+
+            
+        </p>
+
+        <div class="before-after">
+            <div class="image-container">
+                <img src="img/extra/self_portrait_no_white_balance.jpg" alt="Before applying the improvement">
+                <p class="caption"> <code> Rocks appear yellow-ish </code></p>
+            </div>
+
+            <div class="image-container">
+                <img src="img/extra/self_portrait_white_balance.jpg" alt="After applying the improvement.">
+                <p class="caption"><code> Rocks have a more natural color</code>  </p>
+            </div>
+        </div>
+    </div>
+
+            <div>
+            <h3> Better Color Mapping </h3>
+        <p>
+            Yet after all those changes, the colors may still appear unnatural.
+            I noticed in several pictures that the images appeared yellow-ish. Since yellow and blue appear on the opposite ends of the 
+            b* chromatic space, I introduced a small correction to the RGB channels.
+            
+            $$
+            R' = R - 0.05B
+            $$
+
+            $$
+            G' = G - 0.05B
+            $$
+
+            $$
+            B' = B + 0.10G
+            $$
+
+
+            I wanted to reduce the yellow cast by shifting the relative balance away from yellow and toward blue, by reducing the values of red and green.
+            I felt like increasing the values in the blue channel would also help. 
+            The small amount of green added to the blue channel was the result of several experiments, and this yielded the most natural-looking results in my experiments.
+
+
+
+
+        </p>
+        <div class="before-after">
+            <div class="image-container">
+                <img src="img/extra/ilemselga_before_mapping.jpg" alt="Before applying the improvement">
+                <p class="caption"> <code> Colors are still yellow-ish despite while balance adjustment </code></p>
+            </div>
+
+            <div class="image-container">
+                <img src="img/extra/ilemselga_post_color_mapping.jpg" alt="After applying the improvement.">
+                <p class="caption"><code> Yellow cast disappeared</code>  </p>
+            </div>
+        </div>
+
+            <div>
+            <h3> Better Features </h3>
+        <p>
+            
+            As we have seen until here, getting the right colors is not an easy step. Yet, the current alignement techniques used so far 
+            depend on those colors, and the similarity scores between the different channels.  To have a more robust alignment, 
+            I decided to change the alignement technique to use the edges on the image instead. 
+
+            
+
+            <br></br>
+
+            I first had to apply Gaussian Blur to the image in order to burry potential noise. Using OpenCV, I applied this 3x3 Gaussian blur, 
+            and then passed this blurred image to a Canny Edge Detection algorithm from OpenCV as well. 
+            This algorithm measures edge intensity for each pixel and direction. The image is then scanned to only 
+            keep local maximum in order to have singular pixels appear as edges. 
+
+            $$
+            \mathbf{G} = \sqrt{\mathbf{G}_x^2 + \mathbf{G}_y^2}
+            $$ 
+
+            Here G is the intensity gradient magnitude for each pixel, which measure how much the intensity changtes around the pixel. ${G}_x$ is the derivative 
+            in the horizontal direction and ${G}_y$ the gradient in the vertical direction. 
+
+            <br></br>
+            <div class="overview pyramid-overview">
+                        <div class="overview-image pyramid-image">
+                        <img src="img/extra/thresholds.png" alt="Multi-scale image pyramid">
+                        <p class="caption"> I used <code> minVal = 100, maxVal = 200</code> 
+                            <a href="https://opencv24-python-tutorials.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_canny/py_canny.html" target="_blank">Source</a>
+                        </p> 
+                    </div>
+                <p> 
+                                I tried several thresholds for the pixel gradients and ended up using 100 and 200 (out of 255). These thresholds determine how strong a
+            gradient must be to be considered an edge. Gradients above 200 are kept as strong edges, 
+            while gradients below 100 are discarded. Gradients between 100 and 200 are kept depending on whether they are connected to a strong edge.
+
+
+
+                </p>
+                </div>
+
+            Once the edges of each channel were computed, I used a similar algorithm as before :
+            <ul>
+            <li>Compute the L2 distance </li>
+            <li>Use an image pyramid recursively to determine the number of pixels to shift the red and blue channels </li>
+            <li>Shift the different channels and stack them  </li>
+            </ul>
+
+
+            As for the results, I eventually get the same alignement as the RGB similarity score, but I suspect this alignement method to be 
+            more robust than the previous one, due to the potential large differences in intensity between two channels. The maximum difference between the two alignement method is 2 pixels.
+
+        </p>
+
+                <div class="before-after">
+            <div class="image-container">
+                <img src="img/train_16.jpg" alt="Before applying the improvement">
+                <p class="caption"> <code> Alignment with RGB intensity score </code></p>
+            </div>
+
+            <div class="image-container">
+                <img src="img/train.jpg" alt="After applying the improvement.">
+                <p class="caption"><code> Output from the whole pipeline: alignement is the very similar but the image is cropped and the colors are modified</code>  </p>
+            </div>
+        </div>
+        
+        <div class="three-and-one">
+    <div class="three-images">
+        <div class="image-container">
+            <img src="img/extra/out_r_edges.jpg" alt="Result 1">
+            <p class="caption">Edges from red channel</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/extra/out_g_edges.jpg" alt="Result 2">
+            <p class="caption">Edges from green channel</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/extra/out_b_edges.jpg" alt="Result 3">
+            <p class="caption">Edges from blue channel</p>
+        </div>
+    </div>
+
+    <div class="large-image">
+        <img src="img/extra/color_edges.jpg" alt="Large result">
+        <p class="caption">Stacked edges from the three channels. Looks cool</p>
+    </div>
+    <div class="large-image">
+        <img src="img/extra/emir_extra.jpg" alt="Large result">
+        <p class="caption">Picture aligned with edges detection, and all other Bells & Whistles addings</p>
+    </div>
+
+    <h2> Full Bells & Whistles Pipeline, from left to right </h2>
+    <p> The whole pipeline takes around 25 seconds for one image on my laptop </p>
+    <div class="four-and-two">
+    <div class="four-images">
+        <div class="image-container">
+            <img src="img/extra/religous_painting_aligned.jpg" alt="Result 1">
+            <p class="caption">Aligned by edges</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/extra/religous_painting_cropped.jpg" alt="Result 2">
+            <p class="caption">Automatic Cropping</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/extra/religous_painting_contrast.jpg" alt="Result 3">
+            <p class="caption">Automatic Contrasting</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/extra/religous_painting_after_white_balance.jpg" alt="Result 4">
+            <p class="caption">Automatic White Balance</p>
+        </div>
+    </div>
+
+    <div class="two-images">
+        <div class="image-container">
+            <img src="img/extra/religous_painting_final.jpg" alt="Result 5">
+            <p class="caption">Change of color mapping : final image</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/religous_painting_16.jpg" alt="Result 6">
+            <p class="caption">Alignment without Bells & Whistles</p>
+        </div>
+    </div>
+</div>
+</div>
+    </section>
+
+
+
+
+
+    </main>
+
+    <footer>
+        <p>CS 280A · Computational Photography · UC Berkeley</p>
+    </footer>
 
 </body>
 </html>
