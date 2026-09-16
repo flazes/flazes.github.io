@@ -33,7 +33,7 @@ MathJax = {
         <div class="overview-text">
             <p>
 Sergei Mikhailovich Prokudin-Gorskii traveled the Russian Empire in the early 20th Century, and recorded the exposure of every scene onto a glass plate,
-     using three different filters: a red, a green, a blue one. In this project, I used those negatives to retrieve colored images.
+     using three different filters: a red, a green, a blue one. In this project, I used some of those negatives to retrieve colored images.
             </p>
 <p>
     The main objective of this project is to align the color channel images
@@ -112,7 +112,7 @@ y,x shift for green channel:  (-6, -1)</p>
                     </div>
                 <p>
 
-            The best quality data provided in <code>.tif</code> files were much larger, and 
+            The best quality images, provided in <code>.tif</code> files, were much larger, and 
             computing the L2 distance over the same displacement window as for the previous photos 
             would be computationally expensive. In order to save time without losing precision, 
             I used a multi-scale pyramid alignment technique instead.
@@ -124,7 +124,7 @@ y,x shift for green channel:  (-6, -1)</p>
 
             <br><br>
 
-            At the end of this first rescale, the same algorithm is called recursively with the 
+            At the end of this first rescale, the same algorithm is called recursively, this time with a smaller displacement window ($[-10,10]$) with the 
             current best shift in pixels and the current scaling factor as arguments. By 
             multiplying the scaling factor by 2 ($1/16 \rightarrow 1/8 \rightarrow 1/4 
             \rightarrow 1/2 \rightarrow 1$), the shift in pixels is also multiplied by 2. 
@@ -136,7 +136,7 @@ y,x shift for green channel:  (-6, -1)</p>
             alignment, reducing both the size of the displacement window and the computational time.
 
             For the base case, when the scaling factor is 1 (original image size), the algorithm 
-            returns the shifted image that yields the best L2 similarity score.
+            returns the shifted image that yields the best L2 similarity score. The displacement window for the base case is $[-2,2]$ to avoid computations.
 
             Then, similarly to the single-scale algorithm, the different channels are stacked 
             using their respective colors to produce a final RGB image.
@@ -345,7 +345,7 @@ y,x shift for red channel : (43, 26)</p>
 
             I took the average value of each color channel: $\bar R$, $\bar G$, and $\bar B$.
 
-            I then computed the target RGB value as the average of the three channel means:
+            I then computed the target average RGB value as the average of the three channel means:
 
             $$
             T = \frac{\bar R + \bar G + \bar B}{3}
@@ -432,8 +432,8 @@ y,x shift for red channel : (43, 26)</p>
 
             <br></br>
 
-            I first had to apply Gaussian Blur to the image in order to burry potential noise. Using OpenCV, I applied this 3x3 Gaussian blur, 
-            and then passed this blurred image to a Canny Edge Detection algorithm from OpenCV as well. 
+            I first had to apply Gaussian Blur to the image in order to burry potential noise. Using OpenCV, I applied a 3x3 Gaussian blur, 
+            and then passed this blurred image to a Canny Edge Detection algorithm, also from OpenCV. 
             This algorithm measures edge intensity for each pixel and direction. The image is then scanned to only 
             keep local maximum in order to have singular pixels appear as edges. 
 
@@ -441,14 +441,14 @@ y,x shift for red channel : (43, 26)</p>
             \mathbf{G} = \sqrt{\mathbf{G}_x^2 + \mathbf{G}_y^2}
             $$ 
 
-            Here G is the intensity gradient magnitude for each pixel, which measure how much the intensity changtes around the pixel. ${G}_x$ is the derivative 
+            Here G is the intensity gradient magnitude for each pixel, which measures how much the intensity changes around the pixel. ${G}_x$ is the derivative 
             in the horizontal direction and ${G}_y$ the gradient in the vertical direction. 
 
             <br></br>
             <div class="overview pyramid-overview">
                         <div class="overview-image pyramid-image">
                         <img src="img/extra/thresholds.png" alt="Multi-scale image pyramid">
-                        <p class="caption"> I used <code> minVal = 100, maxVal = 200</code> 
+                        <p class="caption"> I used <code> minVal = 100, maxVal = 200. In this example B would be discared but not A or C</code> 
                             <a href="https://opencv24-python-tutorials.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_canny/py_canny.html" target="_blank">Source</a>
                         </p> 
                     </div>
@@ -470,20 +470,21 @@ y,x shift for red channel : (43, 26)</p>
             </ul>
 
 
-            As for the results, I eventually get the same alignement as the RGB similarity score, but I suspect this alignement method to be 
-            more robust than the previous one, due to the potential large differences in intensity between two channels. The maximum difference between the two alignement method is 2 pixels.
+            As for the results, I eventually get an almost similar alignement as the RGB similarity score, but I suspect this alignement method to be 
+            more robust than the previous one, due to the potential large differences in intensity between two channels. 
+            The maximum difference between the two alignement methods I have observed is 2 pixels.
 
         </p>
 
                 <div class="before-after">
             <div class="image-container">
                 <img src="img/train_16.jpg" alt="Before applying the improvement">
-                <p class="caption"> <code> Alignment with RGB intensity score </code></p>
+                <p class="caption"> <code> y,x shift for blue channel : (-43, -6) for red channel : (43, 26) Alignment with RGB intensity score  </code></p>
             </div>
 
             <div class="image-container">
                 <img src="img/train.jpg" alt="After applying the improvement.">
-                <p class="caption"><code> Output from the whole pipeline: alignement is the very similar but the image is cropped and the colors are modified</code>  </p>
+                <p class="caption"><code>y,x shift for blue channel : (-43, -7) for red channel : (43, 25) Output from the whole pipeline: alignement is the very similar, image is cropped and colors are modified</code>  </p>
             </div>
         </div>
         
@@ -511,16 +512,16 @@ y,x shift for red channel : (43, 26)</p>
     </div>
     <div class="large-image">
         <img src="img/extra/emir_extra.jpg" alt="Large result">
-        <p class="caption">Picture aligned with edges detection, and all other Bells & Whistles addings</p>
+        <p class="caption">Picture aligned with edge detection, and all other Bells & Whistles addings</p>
     </div>
 
     <h2> Full Bells & Whistles Pipeline, from left to right </h2>
-    <p> The whole pipeline takes around 25 seconds for one image on my laptop </p>
+    <p> The whole pipeline takes around 25 seconds for one image on my laptop. </p>
     <div class="four-and-two">
     <div class="four-images">
         <div class="image-container">
             <img src="img/extra/religous_painting_aligned.jpg" alt="Result 1">
-            <p class="caption">Aligned by edges</p>
+            <p class="caption">Aligned by computed edges</p>
         </div>
 
         <div class="image-container">
