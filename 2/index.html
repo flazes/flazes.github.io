@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CS 280A - Project 2</title>
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            }
+        };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+
+    <a href="../../index.html" class="back-button">
+        ← Back to CS 280A Projects
+    </a>
+
+    <header>
+        <h1>Project 2: Fun with Filters and Frequencies</h1>
+        <p>CS 280A · UC Berkeley · Fall 2026</p>
+    </header>
+
+    <main>
+
+        <section>
+            <h2>Project Overview</h2>
+
+            <div class="overview">
+                <div class="overview-text">
+                    <p>
+                        [Motivation]
+                    </p>
+
+                    <p>
+                        In this project I experiment with 2D convolutions, filtering, but also with image frequencies. 
+
+                        This project is also a good excuse to show the pictures of my travels.
+                    </p>
+                </div>
+
+                <div class="overview-image">
+                    <img src="img/albania_waterfall_mixed.png" alt="Project overview">
+                    <p class="caption">Multiresolution Blending !</p>
+                </div>
+            </div>
+        </section>
+
+
+        <section>
+            <h2>Fun with filters !</h2>
+
+            <div class="five-images">
+
+    <div class="image-container">
+        <img src="img/georgia.jpg" alt="Description">
+        <p class="caption">Original Image</p>
+    </div>
+    <div class="image-container">
+        <img src="img/georgia_gray.jpg" alt="Description">
+        <p class="caption">Gray Scale Image</p>
+    </div>
+    <div class="image-container">
+        <img src="img/box_georgia.jpg" alt="Description">
+        <p class="caption">Gray Scale convolved with box filter</p>
+    </div>
+    <div class="image-container">
+        <img src="img/georgia_dx.jpg" alt="Description">
+        <p class="caption">Vertical Edges</p>
+    </div>
+    <div class="image-container">
+        <img src="img/georgia_dy.jpg" alt="Description">
+        <p class="caption">Horizontal Edges</p>
+    </div>
+
+
+
+
+</div>
+<p>
+    This image of me was taken at the <a href = "https://maps.app.goo.gl/7CTavHWbmXRn2YEj7" >Shkhara Glacier</a>, the highest peak of the beautiful country of Georgia. 
+    The glacier sits on the border with Russia. 
+</p>
+
+<div class="code-comparison">
+
+    <div>
+        <h3>Method 1</h3>
+        <pre><code>
+def zero_padding(image, n = 1):
+    return np.pad(image, pad_width= n, mode= "constant")
+
+def convolution(image, filter):
+    filter = np.flip(filter)
+    center_i = filter.shape[0] // 2
+    center_j = filter.shape[1] // 2
+    pad_index = max(center_i, center_j)
+    padded_image = zero_padding(image, n = pad_index)  
+    height, width = padded_image.shape
+    new_image = np.zeros((height, width))
+    for i in range(height):
+        if i < center_i or i >= height - center_i : 
+            continue
+        for j in range(width):
+            if j < center_j or j >= width- center_j:  
+                continue
+            value = 0
+            for k in range(0-center_k, filter.shape[0] - center_k, 1):
+                for h in range(0 - center_h, filter.shape[1] - center_h, 1):
+                    value += padded_image[i + k][j + h] 
+                              * filter[center_k + k][center_h + h]            
+            new_image[i][j] = value
+    return new_image[pad_index:-pad_index,pad_index:-pad_index]
+        </code></pre>
+    </div>
+
+    <div>
+        <h3>Method 2</h3>
+        <pre><code>
+def convolution_2_for_loops(image, filter):
+    filter = np.flip(filter)
+    center_i = filter.shape[0] // 2
+    center_j = filter.shape[1] // 2
+    pad_index = max(center_i, center_j)
+    padded_image = zero_padding(image, n = pad_index)
+    height, width = padded_image.shape
+    new_image = np.zeros((height, width))
+    for i in range(height):
+        if i < center_i or i >= height - center_i :
+            continue
+        for j in range(width):
+            if j < center_j or j >= width- center_j: 
+                continue
+            new_image[i,j] = np.sum(filter * padded_image
+                [i-center_i:i+center_i+1, j-center_j:j+center_j+1])
+    return new_image[pad_index:-pad_index,pad_index:-pad_index]
+        </code></pre>
+    </div>
+
+</div>
+
+
+            <p>
+                In this section I wrote two functions to perform convolution on images with 
+                convolution filters. The filter (kernel) slides across the image, multiply neighbor pixels\
+                with its coefficients, and then sum then to get a final value for that specific pixel.
+                This operation is done on the whole image. Here we first use a box kernel to blur the image, 
+                by taking the average of all the close neighbors.
+
+                The following filters $$
+D_x =
+\begin{bmatrix}
+1 & 0 & -1
+\end{bmatrix},
+\qquad
+D_y =
+\begin{bmatrix}
+1 \\
+0 \\
+-1
+\end{bmatrix}
+$$ informs us of the change of pixel brightness with their neighbors.
+                $D_x$ calculate the horizontal change in intensity and $D_y$ the vertical change in intensity.
+
+                
+            </p>
+
+            <table class="comparison-table">
+    <tr>
+        <th>Convolution</th>
+        <th>4 for loops</th>
+        <th>2 for loops</th>
+        <th>scipy.signal.convolve2d</th>
+    </tr>
+
+    <tr>
+        <td> 9x9 Box Filter</td>
+        <td>55s</td>
+        <td>5.3s</td>
+        <td>0.1s</td>
+    </tr>
+
+    <tr>
+        <td>Derviative Filters</td>
+        <td>3.5s</td>
+        <td>5.4s</td>
+        <td>0.1s</td>
+    </tr>
+</table>
+<p>
+    As expected, the more loops in the function, the longer the runtime is.
+    SciPy being written in C, the runtime is much faster than any code that can
+    be written in pure Python. For some reason I don't understand the convolution is quicker
+    with 4 loops rather than 2 loops for the derivative filters. 
+</p>
+
+<p>
+    In my code, I pad the edges of the image with $k$ zeros, $k$ being the
+    dimension of the kernel divided by 2 and rounded down. This allows for even
+    pixels in the corners to be computed. However, those pixels will tend to be
+    darker because 0 values are counted in the average.
+</p>
+
+<p>
+    I used the parameters <code>mode="full"</code>,
+    <code>boundary="fill"</code>, and <code>fillvalue=0</code>, which does the
+    same thing as I did in my own functions. In both cases, the convolution will
+    give images with larger dimensions, which I immediately slice to get a convolved
+    image with the same shape as the original.
+</p>
+        </section>
+
+
+        <section>
+            <h2>1.2: Finite Difference Operator</h2>
+
+    <div class="three-thresholds">
+
+    <div class="image-container">
+        <img src="img/cam_dx.jpg" alt="Partial derivative in x">
+        <p class="caption">$D_x$ — Partial derivative in x</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/cam_dy.jpg" alt="Partial derivative in y">
+        <p class="caption">$D_y$ — Partial derivative in y</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/grad_magnitude_cam.jpg" alt="Gradient magnitude">
+        <p class="caption">Gradient magnitude</p>
+    </div>
+
+
+
+</div>
+
+<section>
+    <h2>Choosing the Threshold</h2>
+
+    <div class="overview threshold-overview">
+
+        <div class="overview-text">
+            <p>
+                Here I experimented with different thresholds for binarizing
+                the gradient magnitude image. The goal is to suppress noise
+                while preserving the real edges in the image.
+            </p>
+            <p>Gradient magnitude is computed as such : $G = \sqrt{D_x^2 + D_y^2}$</p>
+
+            <p>
+                The grass on the gradient magnitude image is seen as an edge, but it 
+                not something that is worth being noted in for edge detection. 
+                The following images show the results for different threshold of gradient magnitude. 
+                If the magnitude is over this threshold, the pixel takes a value of 1 (white), else it becomes 0.
+                The threshold I found the best is 0.15. It shows all real edges but still retains some noise, on the grass for example.
+            </p>
+        </div>
+
+        <div class="overview-image">
+            <img src="img/cameraman.png" alt="Original cameraman image">
+            <p class="caption">Original image</p>
+        </div>
+
+    </div>
+
+    <div class="three-thresholds">
+
+        <div class="image-container">
+            <img src="img/grad_magnitude_cam_03.jpg" alt="First threshold">
+            <p class="caption">Threshold = 0.3</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/grad_magnitude_cam_015.jpg" alt="Second threshold">
+            <p class="caption">Best Threshold = 0.15</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/grad_magnitude_cam_005.jpg" alt="Third threshold">
+            <p class="caption">Threshold = 0.05</p>
+        </div>
+
+    </div>
+
+    
+
+    <section>
+    <h2>Derivative of Gaussian Filters</h2>
+
+    <p>
+        To remove this noise, I will use a Gaussian filter G to create a blurred version of the original image,
+        and try the same experiment the previous paragraph.
+        Because convolution is commutative, I created derivative of Gaussian (DoG) filters
+        by convolving the Gaussian filter with $D_x$ and $D_y$. This yields the same results as smoothing the 
+        image with the Gaussian filter first, and then applying each derivative filter. 
+
+    </p>
+
+    <div class="two-dogs">
+
+        <div class="image-container">
+            <img src="img/dog_dx.png" alt="Derivative of Gaussian in x">
+            <p class="caption">$G * D_x$</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/dog_dy.png" alt="Derivative of Gaussian in y">
+            <p class="caption">$G * D_y$</p>
+        </div>
+
+        
+    </div>
+
+    <p>Here are the results after the convolution of those filters with the cameraman image : </p>
+
+
+    <div class="two-images">
+
+        <div class="image-container">
+            <img src="img/cam_dx_gaussian.jpg" alt="Derivative of Gaussian in x">
+            <p class="caption">$G * D_x$</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/cam_dx_gaussian.jpg" alt="Derivative of Gaussian in y">
+            <p class="caption">$Gradient Orientation of the image$</p>
+        </div>
+
+        
+    </div>
+
+    
+    <div class="two-images">
+
+        <div class="image-container">
+            <img src="img/cam_grad_mag_01.jpg" alt="">
+            <p class="caption">Gradient Magnitude with threshold 0.1x</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/filterd_angles.jpg" alt="">
+            <p class="caption">Gradient Orientations</p>
+        </div>
+
+
+    </div>
+                        <p>
+<p>
+    <strong>Bells &amp; Whistles:</strong> The last image shows the gradient
+    orientations viewed in HSV color space.
+    It shows the angle of the direction where pixel intensity changes the most
+    rapidly to local edges.
+    Each angle $\theta$ is calculated with
+    $\theta = \operatorname{arctan2}(G_y, G_x)$.
+    I computed this angle for every pixel on the image, then used the same
+    threshold as the gradient magnitude image to keep the relevant edges.
+</p>
+</p>
+
+<section>
+    <h2>Part 2.1: Unsharp Mask Filter</h2>
+
+    <p>
+        Here, we also use a Gaussian mask to blur the image, losing the details of the image.
+        Images of the details are represented by the highest frequenciues of the image. 
+        For example, the PFK colonel is harder to see on the blurred image. 
+    </p>
+
+    <p>
+        If we want to have sharper details in our image, we can add the high frequencies
+        of the image to our original image. Substracting the blurred image (low frequencies)
+        to the original image gives us the high frequencies. 
+    </p>
+
+    <h3>Taj Mahal</h3>
+
+    <div class="four-images">
+
+        <div class="image-container">
+            <img src="img/taj.jpg" alt="Original Taj Mahal image">
+            <p class="caption">Original</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/taj_blur.jpg" alt="Blurred Taj Mahal image">
+            <p class="caption">Blurred</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/high_freq_taj.jpg" alt="High-frequency Taj Mahal image">
+            <p class="caption">High-frequency (I - blurred)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/taj_sharp.jpg" alt="Sharpened Taj Mahal image">
+            <p class="caption">Sharpened</p>
+        </div>
+
+    </div>
+
+    <h3>PFK in Montréal </h3>
+
+    <div class="four-images">
+
+        <div class="image-container">
+            <img src="img/pfk.jpg" alt="Original second image">
+            <p class="caption">Original</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/pfk_blur.jpg" alt="Blurred second image">
+            <p class="caption">Blurred</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/high_freq_pfk.jpg" alt="High-frequency second image">
+            <p class="caption">High-frequency (I - blurred)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/pfk_sharped_5.jpg" alt="Sharpened">
+            <p class="caption">Sharpened</p>
+        </div>
+
+    </div>
+
+    <div class="two-images">
+
+    <div class="image-container">
+        <img src="img/taj_blurred_sharped.jpg" alt="First image">
+        <p class="caption">Taj Blurred then Sharped</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/pfk_blurred_sharped.jpg" alt="Second image">
+        <p class="caption">PFK Blurred then Sharped</p>
+    </div>
+</div>
+    
+<p>
+    If you first blur an image, you lose its detail and high frequencies.
+    Trying to sharpen it again will not return the original image, because the
+    blurred image lost the high frequencies and cannot recover them just from
+    the blurred image. This is shown in the previous two pictures. 
+</p>
+</section>
+
+<section>
+    <h3>Effect of Sharpening Amount</h3>
+
+    <p>
+        The sharpening amount is controlled by the parameter $\alpha$. I
+        experimented with four different values of $\alpha$ at different
+        scales to observe how the sharpening effect changes.
+    </p>
+
+    <p>    The unsharp mask can also be expressed as a single convolution. Starting
+    from $I_{\text{sharp}} = I + \alpha(I - I * G)$, this can be rewritten as
+    $I_{\text{sharp}} = I * [(1+\alpha)\delta - \alpha G]$, where $\delta$
+    is the impulse filter.</p>
+
+    <div class="four-alpha">
+
+        <div class="image-container">
+            <img src="img/pfk_sharped_05.jpg" alt="Taj Mahal with first alpha">
+            <p class="caption">$\alpha = 0.5$</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/pfk_sharped_1.jpg" alt="Taj Mahal with second alpha">
+            <p class="caption">$\alpha = 1$</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/pfk_sharped_15.jpg" alt="Taj Mahal with third alpha">
+            <p class="caption">$\alpha = 1.5$</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/pfk_sharped_5.jpg" alt="Taj Mahal with fourth alpha">
+            <p class="caption">$\alpha = 5$</p>
+        </div>
+
+    </div>
+
+    <p>    As alpha slowly increases from 0.5 to 1.5, you can see that the bricks
+    become more and more distinguishable. When alpha reaches 5, the sharp
+    lines on the cars become much more pronounced.
+    </p>
+</section>
+
+<section>
+    <h2>Part 2.2: Hybrid Images</h2>
+
+    <p>
+        [Briefly explain the idea of hybrid images: combining the low-frequency
+        content of one image with the high-frequency content of another.]
+    </p>
+
+    <h3>Derek + Nutmeg</h3>
+
+    <p>
+        [Explain that this hybrid is the example where the entire process is
+        shown.]
+    </p>
+
+    <h4>Original Images</h4>
+
+    <div class="two-images">
+        <div class="image-container">
+            <img src="img/DerekPicture.jpg" alt="Original Derek image">
+            <p class="caption">Derek</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/nutmeg.jpg" alt="Original Nutmeg image">
+            <p class="caption">Nutmeg</p>
+        </div>
+    </div>
+
+    <h4>Aligned Images</h4>
+
+    <div class="two-images">
+        <div class="image-container">
+            <img src="img/derek_aligned.png" alt="Aligned Derek image">
+            <p class="caption">Aligned Derek</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/nutmeg_aligned.png" alt="Aligned Nutmeg image">
+            <p class="caption">Aligned Nutmeg</p>
+        </div>
+    </div>
+
+    <h4>Fourier Transforms</h4>
+
+    <div class="two-images">
+        <div class="image-container">
+            <img src="img/derek_freq.jpg" alt="Fourier transform of Derek">
+            <p class="caption">Derek Fourier transform</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/nutmeg_freq.jpg" alt="Fourier transform of Nutmeg">
+            <p class="caption">Nutmeg Fourier transform</p>
+        </div>
+    </div>
+
+    <h4>Filtered Images</h4>
+
+    <div class="two-images">
+        <div class="image-container">
+            <img src="img/low_pass_s1_10_s2_5_k_25.png" alt="Low-pass filtered Derek">
+            <p class="caption">Low-pass filtered Derek</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/high_pass_s1_10_s2_5_k_25.png" alt="High-pass filtered Nutmeg">
+            <p class="caption">High-pass filtered Nutmeg</p>
+        </div>
+
+    <h4>Cutoff Choice</h4>
+    </div>
+
+        <div class="three-thresholds">
+
+        <div class="image-container">
+            <img src="img/hybrid_s1_3_s2_1_k_25.png" alt="First threshold">
+            <p class="caption">    $\sigma_{\mathrm{low}} = 3,\quad
+    \sigma_{\mathrm{high}} = 1,\quad
+    k = 25$
+</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/hybrid_s1_10_s2_5_k_25.png" alt="Second threshold">
+            <p class="caption">    $\sigma_{\mathrm{low}} = 10,\quad
+    \sigma_{\mathrm{high}} = 5,\quad
+    k = 25$
+</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/hybrid_s1_100_s2_500_k_3.jpg" alt="Third threshold">
+            <p class="caption">    $\sigma_{\mathrm{low}} = 100,\quad
+    \sigma_{\mathrm{high}} = 500,\quad
+    k = 3$
+</p>
+        </div>
+
+    </div>
+
+<p>
+    After testing different combinations of parameters and visually evaluating
+    the hybrid from different distances, I found the following combination to
+    give the best result:
+</p>
+
+<p>
+    \[
+    \sigma_{\mathrm{low}} = 10,\qquad
+    \sigma_{\mathrm{high}} = 5,\qquad
+    k = 25
+    \]
+</p>
+
+<p>
+    I chose $\sigma_{\mathrm{low}} = 10$ to sufficiently blur Derek's image so
+    that its low-frequency structure becomes visible from a distance. For the
+    high-frequency component, $\sigma_{\mathrm{high}} = 5$ preserved enough
+    detail from the second image without making the hybrid too sharp or noisy.
+    A kernel size of $k = 25$ provided enough spatial support for both Gaussian
+    filters.
+</p>
+
+<h4>Final Hybrid</h4>
+
+    <div class="one-image">
+        <img src="img/hybrid_nutmeg.jpg" alt="Cutoff frequency visualization">
+        <p class="caption"></p>
+    </div>
+
+    
+
+
+    <h3>Hybrid Image 2</h3>
+
+    <div class="two-images">
+        <div class="image-container">
+            <img src="img/full.jpeg" alt="Original image">
+            <p class="caption">Full bowl from Toss Noodle Bar</p>
+        </div>
+        <div class="image-container">
+            <img src="img/empty.jpeg" alt="Original image">
+            <p class="caption">Empty bowl </p>
+        </div>
+
+
+    </div>
+
+    <div class="one-image">
+        <img src="img/food_hybrid_cut.jpg" alt="Second hybrid image">
+        <p class="caption">I ate it all</p>
+    </div>
+
+
+    <h3>Hybrid Image 3</h3>
+
+    <div class="two-images">
+        <div class="image-container">
+            <img src="img/kya_face.jpeg" alt="Original image">
+            <p class="caption">My cat Kya</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/lion.jpg" alt="Original image">
+            <p class="caption">Some lion</p>
+        </div>
+    </div>
+
+    <div class="one-image">
+        <img src="img/lion_hybrid_cut.jpg" alt="Third hybrid image">
+        <p class="caption">Both dangerous</p>
+    </div>
+
+<h3> Bells & Whistles : Color Hybrid Images </h3>
+    <div class="four-images">
+
+    <div class="image-container">
+        <img src="img/hybrid_nutmeg.jpg" alt="Grayscale hybrid">
+        <p class="caption">Grayscale</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/hybrid_low.jpg" alt="Color in high-frequency component">
+        <p class="caption">Color in low-frequency</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/hybrid_high.jpg" alt="Color in low-frequency component">
+        <p class="caption">Color in high-frequency</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/hybrid_both.jpg" alt="Color in both components">
+        <p class="caption">Color in both</p>
+    </div>
+</div>
+<p>
+    For a hybrid image to be effective, the colors of both images have to be
+    similar enough. In grayscale, this is naturally the case. When adding
+    color to one or both of the images, their colors become distinguishable
+    enough to ruin the trick.
+</p>
+
+<p>
+    I find that using color in the high-frequency component works pretty well
+    from close up, but not as much when looking from a distance. Whenever the
+    low-frequency component is colored, Derek's smile and lips become much more
+    pronounced.
+</p>
+
+</section>
+
+<section>
+    <h2>Part 2.3: Gaussian and Laplacian Stacks</h2>
+
+    <p>
+        Gaussian and Laplacian stacks are similar to image pyramids, except
+        that the images are not downsampled at each level. This allows each
+        level of the stack to remain the same size as the original image.
+    </p>
+
+    <h3>Gaussian Stack</h3>
+
+    <p>
+        [Brief explanation of how you constructed the Gaussian stack.]
+    </p>
+
+    <div class="stack-images">
+        <h3>Apple Gaussian Stack</h3>
+
+<div class="five-images">
+    <div class="image-container">
+        <img src="img/gaus_orange_0.jpg" alt="Apple Gaussian stack level 0">
+        <p class="caption">Level 0</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_orange_1.jpg" alt="Apple Gaussian stack level 1">
+        <p class="caption">Level 1</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_orange_2.jpg" alt="Apple Gaussian stack level 2">
+        <p class="caption">Level 2</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_orange_3.jpg" alt="Apple Gaussian stack level 3">
+        <p class="caption">Level 3</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_orange_4.jpg" alt="Apple Gaussian stack level 4">
+        <p class="caption">Level 4</p>
+    </div>
+</div>
+
+
+<h3>Apple Laplacian Stack</h3>
+
+<div class="five-images">
+    <div class="image-container">
+        <img src="img/gaus_apple_0.jpg" alt="Apple Laplacian stack level 0">
+        <p class="caption">Level 0</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_apple_1.jpg" alt="Apple Laplacian stack level 1">
+        <p class="caption">Level 1</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_apple_2.jpg" alt="Apple Laplacian stack level 2">
+        <p class="caption">Level 2</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_apple_3.jpg" alt="Apple Laplacian stack level 3">
+        <p class="caption">Level 3</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_apple_4.jpg" alt="Apple Laplacian stack level 4">
+        <p class="caption">Level 4</p>
+    </div>
+    </div>
+    </div>
+    </div>
+
+    <h3>Laplacian Stack</h3>
+
+    
+
+    <p>
+        [Brief explanation of how you constructed the Laplacian stack.]
+    </p>
+
+</div>
+<div class="five-images">
+    <div class="image-container">
+        <img src="img/gaus_apple_0.jpg" alt="Apple Laplacian stack level 0">
+        <p class="caption">Level 0</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_apple_1.jpg" alt="Apple Laplacian stack level 1">
+        <p class="caption">Level 1</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_apple_2.jpg" alt="Apple Laplacian stack level 2">
+        <p class="caption">Level 2</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_apple_3.jpg" alt="Apple Laplacian stack level 3">
+        <p class="caption">Level 3</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_apple_4.jpg" alt="Apple Laplacian stack level 4">
+        <p class="caption">Level 4</p>
+    </div>
+
+
+    
+     </div>
+
+     <h3>Apple Gaussian Stack</h3>
+
+<div class="five-images">
+    <div class="image-container">
+        <img src="img/lap_orange_0.jpg" alt="Apple Gaussian stack level 0">
+        <p class="caption">Level 0</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/lap_orange_1.jpg" alt="Apple Gaussian stack level 1">
+        <p class="caption">Level 1</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/lap_orange_2.jpg" alt="Apple Gaussian stack level 2">
+        <p class="caption">Level 2</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/lap_orange_3.jpg" alt="Apple Gaussian stack level 3">
+        <p class="caption">Level 3</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_orange_0.jpg" alt="Apple Gaussian stack level 4">
+        <p class="caption">Level 4</p>
+    </div>
+</div>
+
+
+<h3>Apple Laplacian Stack</h3>
+
+<div class="five-images">
+    <div class="image-container">
+        <img src="img/lap_apple_0.jpg" alt="Apple Laplacian stack level 0">
+        <p class="caption">Level 0</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/lap_apple_1.jpg" alt="Apple Laplacian stack level 1">
+        <p class="caption">Level 1</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/lap_apple_2.jpg" alt="Apple Laplacian stack level 2">
+        <p class="caption">Level 2</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/lap_apple_3.jpg" alt="Apple Laplacian stack level 3">
+        <p class="caption">Level 3</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/gaus_apple_0.jpg" alt="Apple Laplacian stack level 4">
+        <p class="caption">l4 = g0 </p>
+    </div>
+</div>
+
+    
+
+    <h3>Oraple: Recreating Figure 3.42</h3>
+
+    <p>
+        I applied the Gaussian and Laplacian stacks to the Apple and Orange
+        images to recreate the different stages shown in Figure 3.42.
+    </p>
+
+    <div class="twelve-images">
+
+        <div class="image-container">
+            <img src="img/apple_0.jpg" alt="Figure 3.42 a">
+            <p class="caption">(a)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/orange_0.jpg" alt="Figure 3.42 b">
+            <p class="caption">(b)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/mix_0.jpg" alt="Figure 3.42 c">
+            <p class="caption">(c)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/apple_2.jpg" alt="Figure 3.42 d">
+            <p class="caption">(d)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/orange_2.jpg" alt="Figure 3.42 e">
+            <p class="caption">(e)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/mix_2.jpg" alt="Figure 3.42 f">
+            <p class="caption">(f)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/apple_4.jpg" alt="Figure 3.42 g">
+            <p class="caption">(g)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/orange_4.jpg" alt="Figure 3.42 h">
+            <p class="caption">(h)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/mix_4.jpg" alt="Figure 3.42 i">
+            <p class="caption">(i)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/apple_sum.jpg" alt="Figure 3.42 j">
+            <p class="caption">(j)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/orange_sum.jpg" alt="Figure 3.42 k">
+            <p class="caption">(k)</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/oraple.png" alt="Figure 3.42 l">
+            <p class="caption">(l)</p>
+        </div>
+
+    </div>
+</section>
+
+</section>
+
+<div class="three-thresholds">
+
+    <div class="image-container">
+        <img src="img/oman.jpeg"s>
+        <p class="caption">$D_x$ — Partial derivative in x</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/memorial.jpeg" alt="Partial derivative in y">
+        <p class="caption">$D_y$ — Partial derivative in y</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/mask_memorial.png" alt="Gradient magnitude">
+        <p class="caption">Gradient magnitude</p>
+    </div>
+
+
+
+
+</div>
+        <div class="one-image">
+        <img src="img/memorial_mixed_oman.jpg" alt="Cutoff frequency visualization">
+        <p class="caption"></p>
+    </div>
+
+
+
+<div class="three-thresholds">
+
+    <div class="image-container">
+        <img src="img/waterfall.jpeg">
+        <p class="caption">$D_x$ — Partial derivative in x</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/albania.jpeg" alt="Partial derivative in y">
+        <p class="caption">$D_y$ — Partial derivative in y</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/mask_albania.png" alt="Gradient magnitude">
+        <p class="caption">Gradient magnitude</p>
+
+
+
+
+</div>
+
+    </div>
+
+        <div class="one-image">
+        <img src="img/albania_waterfall_mixed.png" alt="Cutoff frequency visualization">
+        <p class="caption"></p>
+    </div>
+
+<h4> Bells & Whistles</h4>
+
+
+        <div class="three-thresholds">
+
+    <div class="image-container">
+        <img src="img/saturated_apple.png" alt="Partial derivative in x">
+        <p class="caption">$D_x$ — Partial derivative in x</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/bells_filters.png" alt="Partial derivative in y">
+        <p class="caption">$D_y$ — Partial derivative in y</p>
+    </div>
+
+    <div class="image-container">
+        <img src="img/saturated_orange.png" alt="Gradient magnitude">
+        <p class="caption">Gradient magnitude</p>
+    </div>
+
+        </div>
+
+        <div class="one-image">
+        <img src="img/saturated_orapple.png" alt="Cutoff frequency visualization">
+        <p class="caption"></p>
+    </div>
+
+
+<p>I double the HSV saturation and used another filter </p>
+
+</div>
+
+
+        <section>
+            <h2>Fun with Frequencies</h2>
+
+            <p>
+                [Explanation]
+            </p>
+        </section>
+
+
+        <section>
+            <h2>Results</h2>
+
+            <p>
+                [Results and observations]
+            </p>
+        </section>
+
+    </main>
+
+    <footer>
+        CS 280A · UC Berkeley · Fall 2026
+    </footer>
+
+</body>
+</html>
