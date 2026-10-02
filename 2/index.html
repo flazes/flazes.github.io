@@ -35,14 +35,16 @@
 
             <div class="overview">
                 <div class="overview-text">
-                    <p>
-                        [Motivation]
-                    </p>
 
                     <p>
                         In this project I experiment with 2D convolutions, filtering, but also with image frequencies. 
-
-                        This project is also a good excuse to show the pictures of my travels.
+                    </p><p>
+                        I will make hybrid images that can be seen differently depending on the distance between the human eyes and the image.
+</p><p>
+                        Finally, I blend two images together with a mask, and the Gaussian and Laplacian stacks of those images. This gives pretty cool 
+                        results like this image. 
+                    </p><p>
+                        This project is also a good excuse to show the pictures of my travels over the years.
                     </p>
                 </div>
 
@@ -56,6 +58,9 @@
 
         <section>
             <h2>Fun with filters !</h2>
+            <h3>1.1 Convolution From scratch</h3>
+
+            
 
             <div class="five-images">
 
@@ -85,7 +90,7 @@
 
 </div>
 <p>
-    This image of me was taken at the <a href = "https://maps.app.goo.gl/7CTavHWbmXRn2YEj7" >Shkhara Glacier</a>, the highest peak of the beautiful country of Georgia. 
+    This image of me was taken at the <a href = "https://maps.app.goo.gl/7CTavHWbmXRn2YEj7" >Shkhara Glacier</a>, the highest peak of the country of Georgia. 
     The glacier sits on the border with Russia. 
 </p>
 
@@ -149,7 +154,7 @@ def convolution_2_for_loops(image, filter):
 
             <p>
                 In this section I wrote two functions to perform convolution on images with 
-                convolution filters. The filter (kernel) slides across the image, multiply neighbor pixels\
+                convolution filters. The filter (kernel) slides across the image, multiply neighbor pixels
                 with its coefficients, and then sum then to get a final value for that specific pixel.
                 This operation is done on the whole image. Here we first use a box kernel to blur the image, 
                 by taking the average of all the close neighbors.
@@ -197,7 +202,7 @@ $$ informs us of the change of pixel brightness with their neighbors.
 <p>
     As expected, the more loops in the function, the longer the runtime is.
     SciPy being written in C, the runtime is much faster than any code that can
-    be written in pure Python. For some reason I don't understand the convolution is quicker
+    be written in pure Python. For some reasons I don't understand, the convolution is quicker
     with 4 loops rather than 2 loops for the derivative filters. 
 </p>
 
@@ -219,7 +224,7 @@ $$ informs us of the change of pixel brightness with their neighbors.
 
 
         <section>
-            <h2>1.2: Finite Difference Operator</h2>
+            <h2>1.2 Finite Difference Operator</h2>
 
     <div class="three-thresholds">
 
@@ -243,7 +248,7 @@ $$ informs us of the change of pixel brightness with their neighbors.
 </div>
 
 <section>
-    <h2>Choosing the Threshold</h2>
+    <h3>Choosing the Threshold</h3>
 
     <div class="overview threshold-overview">
 
@@ -293,7 +298,7 @@ $$ informs us of the change of pixel brightness with their neighbors.
     
 
     <section>
-    <h2>Derivative of Gaussian Filters</h2>
+    <h2>1.3 Derivative of Gaussian Filters</h2>
 
     <p>
         To remove this noise, I will use a Gaussian filter G to create a blurred version of the original image,
@@ -325,13 +330,28 @@ $$ informs us of the change of pixel brightness with their neighbors.
     <div class="two-images">
 
         <div class="image-container">
+            <img src="img/cameraman.png" alt="Derivative of Gaussian in y">
+            <p class="caption">Original Image $I$</p>
+        </div>
+
+        <div class="image-container">
+            <img src="img/blurred_cam.jpg" alt="Derivative of Gaussian in x">
+            <p class="caption">Image blurred with Gaussian ($I * G$)</p>
+        </div>
+
+    </div>
+
+
+    <div class="two-images">
+
+        <div class="image-container">
             <img src="img/cam_dx_gaussian.jpg" alt="Derivative of Gaussian in x">
-            <p class="caption">$G * D_x$</p>
+            <p class="caption">$I * G * D_x$</p>
         </div>
 
         <div class="image-container">
             <img src="img/cam_dx_gaussian.jpg" alt="Derivative of Gaussian in y">
-            <p class="caption">$Gradient Orientation of the image$</p>
+            <p class="caption">$I * G * D_y$</p>
         </div>
 
         
@@ -342,7 +362,7 @@ $$ informs us of the change of pixel brightness with their neighbors.
 
         <div class="image-container">
             <img src="img/cam_grad_mag_01.jpg" alt="">
-            <p class="caption">Gradient Magnitude with threshold 0.1x</p>
+            <p class="caption">Gradient Magnitude, Threshold = 0.1</p>
         </div>
 
         <div class="image-container">
@@ -352,7 +372,7 @@ $$ informs us of the change of pixel brightness with their neighbors.
 
 
     </div>
-                        <p>
+    <p>
 <p>
     <strong>Bells &amp; Whistles:</strong> The last image shows the gradient
     orientations viewed in HSV color space.
@@ -364,7 +384,7 @@ $$ informs us of the change of pixel brightness with their neighbors.
     threshold as the gradient magnitude image to keep the relevant edges.
 </p>
 </p>
-
+</section>
 <section>
     <h2>Part 2.1: Unsharp Mask Filter</h2>
 
@@ -391,17 +411,17 @@ $$ informs us of the change of pixel brightness with their neighbors.
 
         <div class="image-container">
             <img src="img/taj_blur.jpg" alt="Blurred Taj Mahal image">
-            <p class="caption">Blurred</p>
+            <p class="caption">Blurred (Low-pass Filter)</p>
         </div>
 
         <div class="image-container">
             <img src="img/high_freq_taj.jpg" alt="High-frequency Taj Mahal image">
-            <p class="caption">High-frequency (I - blurred)</p>
+            <p class="caption">High frequencies (original  - blurred)</p>
         </div>
 
         <div class="image-container">
             <img src="img/taj_sharp.jpg" alt="Sharpened Taj Mahal image">
-            <p class="caption">Sharpened</p>
+            <p class="caption">Sharpened (original + original - blurred )</p>
         </div>
 
     </div>
@@ -422,7 +442,7 @@ $$ informs us of the change of pixel brightness with their neighbors.
 
         <div class="image-container">
             <img src="img/high_freq_pfk.jpg" alt="High-frequency second image">
-            <p class="caption">High-frequency (I - blurred)</p>
+            <p class="caption">High frequencies</p>
         </div>
 
         <div class="image-container">
@@ -449,7 +469,10 @@ $$ informs us of the change of pixel brightness with their neighbors.
     If you first blur an image, you lose its detail and high frequencies.
     Trying to sharpen it again will not return the original image, because the
     blurred image lost the high frequencies and cannot recover them just from
-    the blurred image. This is shown in the previous two pictures. 
+    the blurred image. 
+</p>
+<p>
+    PFK is the Québec version of KFC. This is the only place where I have seen so many companies change their names so they can be said in the local language. s
 </p>
 </section>
 
@@ -501,15 +524,15 @@ $$ informs us of the change of pixel brightness with their neighbors.
     <h2>Part 2.2: Hybrid Images</h2>
 
     <p>
-        [Briefly explain the idea of hybrid images: combining the low-frequency
-        content of one image with the high-frequency content of another.]
+        The human eye sees high frequency when physically close to the image, or if the image is big enough.
+        However, the further the eye is from the image, the less high frequencies the eye can visualize. 
+        By removing the high frequency of an image, and using mostly high frequencies of another, we can use 
+        this fact to create hybrid images that are seen differently depending on how far you are from the image.
     </p>
-
     <h3>Derek + Nutmeg</h3>
 
     <p>
-        [Explain that this hybrid is the example where the entire process is
-        shown.]
+        Here, we will blend the image of Derek Hoiem and his former cat (I think).
     </p>
 
     <h4>Original Images</h4>
@@ -528,6 +551,11 @@ $$ informs us of the change of pixel brightness with their neighbors.
 
     <h4>Aligned Images</h4>
 
+    <p>
+        For the trick to be successful, we first need to algin the images so they can blend correctly. 
+        We align both images so both pair of eyes are aligned. 
+    </p>
+
     <div class="two-images">
         <div class="image-container">
             <img src="img/derek_aligned.png" alt="Aligned Derek image">
@@ -540,7 +568,23 @@ $$ informs us of the change of pixel brightness with their neighbors.
         </div>
     </div>
 
-    <h4>Fourier Transforms</h4>
+    <h4>Frequency Analysis</h4>
+
+    
+    <p><p>
+    By computing the log magnitude of the Fourier Transform of both images
+    (converted to grayscale), we can analyze the frequencies present in each
+    image. The brighter the dots are, the more dominant the corresponding
+    frequencies are. The further away a point is from the center, the higher
+    the frequency it represents.
+</p>
+
+<p>
+    I computed the log magnitude using
+    <code>np.log(np.abs(np.fft.fftshift(np.fft.fft2(gray_image))))</code>.
+</p>
+
+    </p>
 
     <div class="two-images">
         <div class="image-container">
@@ -555,6 +599,16 @@ $$ informs us of the change of pixel brightness with their neighbors.
     </div>
 
     <h4>Filtered Images</h4>
+
+    <p><p>
+    I decided to blur Derek's picture and apply an unsharp filter to Nutmeg's
+    picture, using both images in grayscale. For both filters, there is a
+    specific kernel size and a $\sigma$ value, which is the standard deviation
+    of the Gaussian filter.
+</p>
+
+</p>
+
 
     <div class="two-images">
         <div class="image-container">
@@ -671,6 +725,11 @@ $$ informs us of the change of pixel brightness with their neighbors.
         <p class="caption">Both dangerous</p>
     </div>
 
+    <p>
+    If you walk far enough from your computer, you can see on the hybrid images either the Derek's face, the full bowl or my cat.
+</p>
+
+
 <h3> Bells & Whistles : Color Hybrid Images </h3>
     <div class="four-images">
 
@@ -693,6 +752,8 @@ $$ informs us of the change of pixel brightness with their neighbors.
         <img src="img/hybrid_both.jpg" alt="Color in both components">
         <p class="caption">Color in both</p>
     </div>
+
+    
 </div>
 <p>
     For a hybrid image to be effective, the colors of both images have to be
@@ -713,25 +774,36 @@ $$ informs us of the change of pixel brightness with their neighbors.
 <section>
     <h2>Part 2.3: Gaussian and Laplacian Stacks</h2>
 
-    <p>
-        Gaussian and Laplacian stacks are similar to image pyramids, except
-        that the images are not downsampled at each level. This allows each
-        level of the stack to remain the same size as the original image.
-    </p>
+    
+ <p>
+    In this part, we will blend two images together thanks to Gaussian and Laplacian stacks, and a binary filter.
+ </p>
 
-    <h3>Gaussian Stack</h3>
+    <p><p>
+    A Gaussian stack is a sequence of increasingly blurred images. A Laplacian
+    stack captures the high-frequency details between the $i$th and
+    $(i+1)$th levels of the Gaussian stack.
+</p>
 
-    <p>
-        [Brief explanation of how you constructed the Gaussian stack.]
-    </p>
+<p>
+    Specifically, each Laplacian level is computed as the difference between
+    two consecutive Gaussian levels:
+    \[
+    L_i = G_i - G_{i+1}
+    \]
+    Because $G_{i+1}$ is a more blurred version of $G_i$, their difference
+    removes the information that is common to both and preserves the
+    higher-frequency details present in $G_i$.
+</p>
+ 
 
     <div class="stack-images">
-        <h3>Apple Gaussian Stack</h3>
+        <h3>Orange Gaussian Stack</h3>
 
 <div class="five-images">
     <div class="image-container">
         <img src="img/gaus_orange_0.jpg" alt="Apple Gaussian stack level 0">
-        <p class="caption">Level 0</p>
+        <p class="caption">Level 0 = original</p>
     </div>
 
     <div class="image-container">
@@ -756,12 +828,12 @@ $$ informs us of the change of pixel brightness with their neighbors.
 </div>
 
 
-<h3>Apple Laplacian Stack</h3>
+<h3>Apple Gaussian Stack</h3>
 
 <div class="five-images">
     <div class="image-container">
         <img src="img/gaus_apple_0.jpg" alt="Apple Laplacian stack level 0">
-        <p class="caption">Level 0</p>
+        <p class="caption">Level 0 = original</p>
     </div>
 
     <div class="image-container">
@@ -787,46 +859,10 @@ $$ informs us of the change of pixel brightness with their neighbors.
     </div>
     </div>
 
-    <h3>Laplacian Stack</h3>
-
-    
-
-    <p>
-        [Brief explanation of how you constructed the Laplacian stack.]
-    </p>
+    <h3>Orange Laplacian Stacks</h3>
 
 </div>
-<div class="five-images">
-    <div class="image-container">
-        <img src="img/gaus_apple_0.jpg" alt="Apple Laplacian stack level 0">
-        <p class="caption">Level 0</p>
-    </div>
 
-    <div class="image-container">
-        <img src="img/gaus_apple_1.jpg" alt="Apple Laplacian stack level 1">
-        <p class="caption">Level 1</p>
-    </div>
-
-    <div class="image-container">
-        <img src="img/gaus_apple_2.jpg" alt="Apple Laplacian stack level 2">
-        <p class="caption">Level 2</p>
-    </div>
-
-    <div class="image-container">
-        <img src="img/gaus_apple_3.jpg" alt="Apple Laplacian stack level 3">
-        <p class="caption">Level 3</p>
-    </div>
-
-    <div class="image-container">
-        <img src="img/gaus_apple_4.jpg" alt="Apple Laplacian stack level 4">
-        <p class="caption">Level 4</p>
-    </div>
-
-
-    
-     </div>
-
-     <h3>Apple Gaussian Stack</h3>
 
 <div class="five-images">
     <div class="image-container">
@@ -850,11 +886,10 @@ $$ informs us of the change of pixel brightness with their neighbors.
     </div>
 
     <div class="image-container">
-        <img src="img/gaus_orange_0.jpg" alt="Apple Gaussian stack level 4">
-        <p class="caption">Level 4</p>
+        <img src="img/gaus_orange_4.jpg" alt="Apple Gaussian stack level 4">
+        <p class="caption">Level 4 of Gaussian Stack</p>
     </div>
 </div>
-
 
 <h3>Apple Laplacian Stack</h3>
 
@@ -880,102 +915,183 @@ $$ informs us of the change of pixel brightness with their neighbors.
     </div>
 
     <div class="image-container">
-        <img src="img/gaus_apple_0.jpg" alt="Apple Laplacian stack level 4">
-        <p class="caption">l4 = g0 </p>
+        <img src="img/gaus_apple_4.jpg" alt="Apple Laplacian stack level 4">
+        <p class="caption">Level 4 of Gaussian Stack </p>
     </div>
-</div>
 
     
+</div>
 
-    <h3>Oraple: Recreating Figure 3.42</h3>
 
-    <p>
-        I applied the Gaussian and Laplacian stacks to the Apple and Orange
-        images to recreate the different stages shown in Figure 3.42.
-    </p>
+<p>
+    Using the Gaussian and Laplacian stacks, we can reconstruct the original
+    image by adding the most blurred Gaussian image to all of the Laplacian
+    levels. For a stack of size 5, where $G_4$ is the most blurred image:
+</p>
+
+<p>
+    \[
+    I = G_4 + \sum_{i=0}^{3} L_i
+    \]
+</p>
+
+<p>
+    Since each Laplacian level is defined as $L_i = G_i - G_{i+1}$, the
+    intermediate Gaussian levels cancel out when summed, leaving the original
+    image $G_0$.
+</p>
+
+</section>
+
+    
+<div class="overview">
+    <div class="overview-text">
+
+        <p>
+            We will blend the two images together by using their Gaussian and
+            Laplacian stacks, and this binary seam filter and its Gaussian stack.
+        </p>
+
+        <p>
+            By blending the Laplacian values of each image using the corresponding
+            Gaussian value of the mask at each level, we can smoothly combine the two
+            images. This produces a combination of both images that looks surprisingly
+            realistic.
+        </p>
+
+        <p>
+            At each level $i$, I computed the blended Laplacian as
+        </p>
+
+        \[
+        L_i^{\mathrm{blend}}
+        =
+        M_i \cdot L_i^A
+        +
+        (1-M_i)\cdot L_i^B
+        \]
+
+        <p>
+            where $M_i$ is the $i$th level of the Gaussian stack of the mask.
+        </p>
+
+        <p>
+            Finally, I reconstructed the blended image by summing the blended
+            Laplacian levels:
+        </p>
+
+        \[
+        I_{\mathrm{blend}} = \sum_i L_i^{\mathrm{blend}}.
+        \]
+
+       
+
+    </div>
+
+    <div class="overview-image">
+        <img src="img/binary_filter.jpg" alt="Binary Filter">
+        <p class="caption">Binary Filter</p>
+    </div>
+    
+</div>
+
+ <p>
+            I used $\sigma = 2$, which is doubled at every level, with a kernel size
+            of $43$. The stack size is $4 + 1$, including the original image.
+        </p>
+
+        <p>
+            I applied the Gaussian and Laplacian stacks to the Apple and Orange
+            images to recreate the different stages shown in Figure 3.42.
+            The left and middle columns show the original Laplacian stacks weighted
+            by the filter. The right column shows the average contribution of the
+            final image per level. The first row is level 0, the second is level 2,
+            and the third is level 4. The last level is the sum of the interpolation.
+        </p>
+
 
     <div class="twelve-images">
 
         <div class="image-container">
             <img src="img/apple_0.jpg" alt="Figure 3.42 a">
-            <p class="caption">(a)</p>
+            <p class="caption"></p>
         </div>
 
         <div class="image-container">
             <img src="img/orange_0.jpg" alt="Figure 3.42 b">
-            <p class="caption">(b)</p>
+            <p class="caption"></p>
         </div>
 
         <div class="image-container">
             <img src="img/mix_0.jpg" alt="Figure 3.42 c">
-            <p class="caption">(c)</p>
+            <p class="caption"></p>
         </div>
 
         <div class="image-container">
             <img src="img/apple_2.jpg" alt="Figure 3.42 d">
-            <p class="caption">(d)</p>
+            <p class="caption"></p>
         </div>
 
         <div class="image-container">
             <img src="img/orange_2.jpg" alt="Figure 3.42 e">
-            <p class="caption">(e)</p>
+            <p class="caption"></p>
         </div>
 
         <div class="image-container">
             <img src="img/mix_2.jpg" alt="Figure 3.42 f">
-            <p class="caption">(f)</p>
+            <p class="caption"></p>
         </div>
 
         <div class="image-container">
             <img src="img/apple_4.jpg" alt="Figure 3.42 g">
-            <p class="caption">(g)</p>
+            <p class="caption"></p>
         </div>
 
         <div class="image-container">
             <img src="img/orange_4.jpg" alt="Figure 3.42 h">
-            <p class="caption">(h)</p>
+            <p class="caption"></p>
         </div>
 
         <div class="image-container">
             <img src="img/mix_4.jpg" alt="Figure 3.42 i">
-            <p class="caption">(i)</p>
+            <p class="caption"></p>
         </div>
 
         <div class="image-container">
             <img src="img/apple_sum.jpg" alt="Figure 3.42 j">
-            <p class="caption">(j)</p>
+            <p class="caption"></p>
         </div>
 
         <div class="image-container">
             <img src="img/orange_sum.jpg" alt="Figure 3.42 k">
-            <p class="caption">(k)</p>
+            <p class="caption"></p>
         </div>
 
         <div class="image-container">
             <img src="img/oraple.png" alt="Figure 3.42 l">
-            <p class="caption">(l)</p>
+            <p class="caption">Oraple !</p>
         </div>
 
     </div>
 </section>
 
 </section>
-
+<h3> Multiresolution blending from my own pictures </h3>
 <div class="three-thresholds">
 
     <div class="image-container">
         <img src="img/oman.jpeg"s>
-        <p class="caption">$D_x$ — Partial derivative in x</p>
+        <p class="caption"><a href=" https://maps.app.goo.gl/SDwMLAN1EBJTZnek6">Cute village of Bilad Sayt, Oman</a></p>
     </div>
 
     <div class="image-container">
         <img src="img/memorial.jpeg" alt="Partial derivative in y">
-        <p class="caption">$D_y$ — Partial derivative in y</p>
+        <p class="caption"><a href="https://maps.app.goo.gl/tghevtnLfrBJaVQX7">Chiang Kai-shek Memorial Hall</a>, Taipei, Taiwan</p>
     </div>
 
     <div class="image-container">
         <img src="img/mask_memorial.png" alt="Gradient magnitude">
-        <p class="caption">Gradient magnitude</p>
+        <p class="caption">Hand-Made filter</p>
     </div>
 
 
@@ -984,7 +1100,7 @@ $$ informs us of the change of pixel brightness with their neighbors.
 </div>
         <div class="one-image">
         <img src="img/memorial_mixed_oman.jpg" alt="Cutoff frequency visualization">
-        <p class="caption"></p>
+        <p class="caption">Memorial in the mountains !</p>
     </div>
 
 
@@ -993,12 +1109,12 @@ $$ informs us of the change of pixel brightness with their neighbors.
 
     <div class="image-container">
         <img src="img/waterfall.jpeg">
-        <p class="caption">$D_x$ — Partial derivative in x</p>
+        <p class="caption"><a href= https://maps.app.goo.gl/YcFAXjeAnhDnvY9s6>Nauyaca Waterfall Nature Park</a>, Costa Rica</p>
     </div>
 
     <div class="image-container">
         <img src="img/albania.jpeg" alt="Partial derivative in y">
-        <p class="caption">$D_y$ — Partial derivative in y</p>
+        <p class="caption">Me somewhere in old ruins in Albania</p>
     </div>
 
     <div class="image-container">
@@ -1014,58 +1130,64 @@ $$ informs us of the change of pixel brightness with their neighbors.
 
         <div class="one-image">
         <img src="img/albania_waterfall_mixed.png" alt="Cutoff frequency visualization">
-        <p class="caption"></p>
+        <p class="caption">Me in Costa Rica</p>
     </div>
 
 <h4> Bells & Whistles</h4>
 
+<p> 
+    To improve the results of the hybrid imges using colors. 
+    The first thing I did was to create a filter that is not just black and white,
+    but different for the red color channel. I made this choice because those two images
+    rely a lot on theiur red channel. Instead of having a sharp mask at first, I make it 
+    blend from 0 to 1 hoping to smooth the result. 
 
-        <div class="three-thresholds">
+    I also decided to convert the image to HSV and doubled the saturation of the image, 
+    which in my opinion improves the color of the image, making it less yellow-ish. 
+    
+    
+</p>
+    <div class="three-thresholds">
 
     <div class="image-container">
         <img src="img/saturated_apple.png" alt="Partial derivative in x">
-        <p class="caption">$D_x$ — Partial derivative in x</p>
+        <p class="caption">Apple, saturated</p>
     </div>
 
     <div class="image-container">
         <img src="img/bells_filters.png" alt="Partial derivative in y">
-        <p class="caption">$D_y$ — Partial derivative in y</p>
+        <p class="caption">New filter</p>
     </div>
 
     <div class="image-container">
         <img src="img/saturated_orange.png" alt="Gradient magnitude">
-        <p class="caption">Gradient magnitude</p>
+        <p class="caption">Orange, saturated</p>
     </div>
 
         </div>
 
         <div class="one-image">
         <img src="img/saturated_orapple.png" alt="Cutoff frequency visualization">
-        <p class="caption"></p>
+        <p class="caption">Better looking oraple</p>
     </div>
 
-
-<p>I double the HSV saturation and used another filter </p>
 
 </div>
 
 
         <section>
-            <h2>Fun with Frequencies</h2>
+            <h2>Most important thing I learned</h2>
 
             <p>
-                [Explanation]
+                This project taught me how low and high frequencies can be used and visualized, and what is their impact on the visualization of an image.
+                I think it is fascinating that an image can be seen differently from different distances. High frequencies from close up and low frequencies from far away.
+
+                I also found interesting how Gaussian and Laplacian stacks work. The fact that adding all different levels of detail to a single blurred image 
+                giving the original image makes sense mathematically, but I find that it is fascinating to actually visualize those details and how they slowly add up. 
+                
             </p>
         </section>
 
-
-        <section>
-            <h2>Results</h2>
-
-            <p>
-                [Results and observations]
-            </p>
-        </section>
 
     </main>
 
