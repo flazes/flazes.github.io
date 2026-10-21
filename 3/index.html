@@ -116,7 +116,7 @@
     <img src="img/part_a/training_inputs_t=0.5.png" alt="Noisy input t 0.50"><figcaption>Noisy · \(t=0.50\)</figcaption></figure><figure class="figure">
     <img src="img/part_a/one_step_0.5_one step.png" alt="One step estimate t 0.50"><figcaption>Estimate · \(t=0.50\)</figcaption></figure><figure class="figure">
     <img src="img/part_a/training_inputs_t=0.75.png" alt="Noisy input t 0.75"><figcaption>Noisy · \(t=0.75\)</figcaption></figure><figure class="figure">
-    <img src="img/part_a/one_step_0.75_one step.png" alt="One step estimate t 0.75"><figcaption>Estimate · \(t=0.75\)</figcaption></figure></div></div><p class="small">Observation: [Compare each one-step estimate with the original and with the Gaussian baseline.]</p>
+    <img src="img/part_a/one_step_0.75_one step.png" alt="One step estimate t 0.75"><figcaption>Estimate · \(t=0.75\)</figcaption></figure></div></div>
 <h3 id="s14">1.4 Visualizing Velocity</h3><p>Because the original image and sampled noise are known, the ground-truth velocity is available for comparison with the model's prediction. The update from time \(t\) to the clean endpoint is the velocity multiplied by \((1-t)\).</p><div class="equation">\[v_{\mathrm{true}}=x-\epsilon,\qquad \Delta x_{\mathrm{pred}}=(1-t)v_{\theta},\qquad \Delta x_{\mathrm{true}}=(1-t)(x-\epsilon)\]</div><p>The per-pixel error is the root-mean-square difference across the RGB channels.</p>
 
 
@@ -345,4 +345,343 @@
                         </section>
 <footer class="footer"><a class="toplink" href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">Back to top ↑</a><p>CS 280A · Exploring the Power of Flow Models · Part A</p></footer>
 </main></div>
+
+
+
+<!-- =========================================================
+     PART 1 — SINGLE-STEP DENOISING
+     ========================================================= -->
+
+<section class="section" id="part_b">
+  <span class="pill">Part B</span>
+  <h2>Single-Step Denoising</h2>
+  <p class="intro">
+    We first train a UNet to map noisy MNIST images directly to clean
+    digits. This provides a baseline for understanding the limitations
+    of one-step denoising as a generative approach.
+  </p>
+
+  <h3>1.1 Visualizing the Noising Process</h3>
+  <p>
+    We add Gaussian noise to clean MNIST images at different noise
+    levels. As the noise level increases, the original digit becomes
+    progressively harder to recognize.
+  </p>
+
+  <figure class="figure">
+    <img src="img/part_b/noise levels by row.png"
+         alt="MNIST images at different noise levels">
+    <figcaption>
+      <strong>Figure 1.</strong> The same clean MNIST images with
+      increasing levels of Gaussian noise.
+      <!-- Replace with your exact noise levels if desired. -->
+    </figcaption>
+  </figure>
+
+  <h3>1.2 Training the Denoiser</h3>
+  <p>
+    The UNet is trained to reconstruct clean images from noisy inputs
+    using an L2 loss. The model uses a hidden dimension of 128 and
+    Adam with a learning rate of 1e-4, trained for five epochs.
+  </p>
+
+  <h4>Training Loss</h4>
+  <figure class="figure">
+    <img src="img/part_b/loss_after_denoiser.png"
+         alt="Training loss curve for the single-step denoiser">
+    <figcaption>
+      <strong>Figure 2.</strong> Training loss throughout the
+      single-step denoiser training process.
+    </figcaption>
+  </figure>
+
+  <h4>Denoising Results</h4>
+  <p>
+    We evaluate the model on the test set using a noise level of 0.5.
+    The following results compare its performance after the first
+    and fifth epochs.
+  </p>
+
+  <div class="gallery">
+    <figure class="figure">
+      <img src="img/part_b/denoised_after_1_epoch.png"
+           alt="Single-step denoising results after epoch 1">
+      <figcaption>
+        <strong>Epoch 1.</strong> Denoising results after one epoch.
+      </figcaption>
+    </figure>
+    <figure class="figure">
+      <img src="img/part_b/denoised_after_5_epoch.png"
+           alt="Single-step denoising results after epoch 5">
+      <figcaption>
+        <strong>Epoch 5.</strong> Denoising results after five epochs.
+      </figcaption>
+    </figure>
+  </div>
+
+  <h3>1.3 Out-of-Distribution Noise Levels</h3>
+  <p>
+    The denoiser was trained using a fixed noise level of 0.5.
+    We now evaluate its behavior at noise levels that were not used
+    during training, keeping the underlying test image unchanged.
+  </p>
+
+  <figure class="figure">
+    <img src="img/part_b/denoise_per_noise_level.png"
+         alt="Denoising the same test image at different noise levels">
+    <figcaption>
+      <strong>Figure 3.</strong> Denoising results for the same image
+      at varying noise levels, including levels outside the training
+      distribution.
+    </figcaption>
+  </figure>
+
+
+
+  <h3>1.4 Denoising Pure Noise</h3>
+  <p>
+    We repeat the training process with pure Gaussian noise as the
+    input, rather than adding noise to a clean image. The model is
+    still trained to predict the corresponding clean MNIST image.
+  </p>
+
+  <h4>Training Loss</h4>
+  <figure class="figure">
+    <img src="img/part_b/loss_train_noise_0.png"
+         alt="Training loss for the pure-noise denoiser">
+    <figcaption>
+      <strong>Figure 4.a</strong> Training loss when denoising pure
+      Gaussian noise.
+    </figcaption>
+  </figure>
+
+    <h4>Training Loss</h4>
+  <figure class="figure">
+    <img src="img/part_b/loses_train_noise_4.png"
+         alt="Training loss for the pure-noise denoiser">
+    <figcaption>
+      <strong>Figure 4.b</strong> Training loss when denoising pure
+      Gaussian noise.
+    </figcaption>
+  </figure>
+
+  <h4>Generated Results</h4>
+  <div class="gallery">
+    <figure class="figure">
+      <img src="img/part_b/train_noise_pred_0.png"
+           alt="Pure-noise denoiser outputs after epoch 1">
+      <figcaption>
+        <strong>Epoch 1.</strong> Outputs after one epoch.
+      </figcaption>
+    </figure>
+    <figure class="figure">
+      <img src="img/part_b/train_noise_pred_5.png"
+           alt="Pure-noise denoiser outputs after epoch 5">
+      <figcaption>
+        <strong>Epoch 5.</strong> Outputs after five epochs.
+      </figcaption>
+    </figure>
+  </div>
+
+  <h4>Discussion</h4>
+  <p>
+    
+    When sampling from the denoiser that was trained to denoise pure noise, every output is the same illegible pattern. It looks like
+it samples the average image of all the number in the training set. Because the model trains on pure noise, it has no idea to what direction denoise
+and will minimize the mean squared error by predicting the average of all the numbers in the training set.
+  </p>
+</section>
+
+
+<!-- =========================================================
+     PART 2 — FLOW MATCHING
+     ========================================================= -->
+
+<section class="section" id="part_b">
+  <span class="pill">Part 2</span>
+  <h2>Training a Flow Matching Model</h2>
+  <p class="intro">
+    Instead of mapping noise directly to a clean image in one step,
+    flow matching learns a time-dependent velocity field. We use
+    this field to iteratively transform random Gaussian noise into
+    an MNIST digit.
+  </p>
+
+  <h3>2.1 Time Conditioning</h3>
+  <p>
+    We extend the UNet with fully connected blocks that embed the
+    normalized timestep \(t\). These embeddings modulate intermediate
+    UNet activations, allowing the model to predict the flow at
+    different points along the interpolation between noise and data.
+  </p>
+
+  <div class="equation">
+    \[
+      x_t = (1-t)x_0 + tx_1,
+      \qquad
+      u_t = x_1-x_0
+    \]
+  </div>
+
+  <p class="small">
+    Here, \(x_0\) denotes a sample from Gaussian noise and \(x_1\)
+    denotes a clean MNIST image. The model predicts the velocity
+    \(u_t\) given the intermediate sample \(x_t\) and timestep \(t\).
+  </p>
+
+  <h3>2.2 Time-Conditioned UNet</h3>
+  <p>
+    We train the time-conditioned UNet using randomly sampled images
+    and timesteps. The model uses a hidden dimension of 64, a batch
+    size of 64, and Adam with an initial learning rate of 1e-2.
+  </p>
+
+  <h4>Training Loss</h4>
+  <figure class="figure">
+    <img src="img/part_b/loss_time_conditioned.png"
+         alt="Training loss curve for the time-conditioned UNet">
+    <figcaption>
+      <strong>Figure 5.</strong> Training loss throughout time-conditioned
+      flow matching training.
+    </figcaption>
+  </figure>
+
+  <h4>Sampling Results</h4>
+  <p>
+    We sample digits by starting from Gaussian noise and numerically
+    integrating the predicted velocity field over time.
+  </p>
+
+  <div class="gallery three">
+    <figure class="figure">
+      <img src="img/part_b/u_net_sampling_after_epoch_0.png"
+           alt="Time-conditioned generation after epoch 1">
+      <figcaption><strong>Epoch 1.</strong> Generated samples.</figcaption>
+    </figure>
+    <figure class="figure">
+      <img src="img/part_b/u_net_sampling_after_epoch_4.png"
+           alt="Time-conditioned generation after epoch 5">
+      <figcaption><strong>Epoch 5.</strong> Generated samples.</figcaption>
+    </figure>
+    <figure class="figure">
+      <img src="img/part_b/u_net_sampling_after_epoch_9.png"
+           alt="Time-conditioned generation after epoch 10">
+      <figcaption><strong>Epoch 10.</strong> Generated samples.</figcaption>
+    </figure>
+  </div>
+
+
+  <h3>2.3 Class-Conditioned UNet</h3>
+  <p>
+    We extend the model with a one-hot class-conditioning vector
+    representing the target digit from 0 to 9. We apply conditioning
+    dropout during training so that the model can also generate
+    unconditional samples, enabling classifier-free guidance.
+  </p>
+
+  <h4>Training Loss</h4>
+  <figure class="figure">
+    <img src="img/part_b/loss_class_conditioned.png"
+         alt="Training loss curve for the class-conditioned UNet">
+    <figcaption>
+      <strong>Figure 6.</strong> Training loss for the class-conditioned
+      flow matching model.
+    </figcaption>
+  </figure>
+
+  <h4>Class-Conditioned Generation</h4>
+  <p>
+    Each visualization contains four generated instances of every
+    digit, from 0 through 9.
+  </p>
+
+  <div class="gallery three">
+    <figure class="figure">
+      <img src="img/part_b/class_conditioned_sample_0.png"
+           alt="Four generated examples for each digit after epoch 1">
+      <figcaption>
+        <strong>Epoch 1.</strong> Four samples per digit.
+      </figcaption>
+    </figure>
+    <figure class="figure">
+      <img src="img/part_b/class_conditioned_sample_4.png"
+           alt="Four generated examples for each digit after epoch 5">
+      <figcaption>
+        <strong>Epoch 5.</strong> Four samples per digit.
+      </figcaption>
+    </figure>
+    <figure class="figure">
+      <img src="img/part_b/class_conditioned_sample_9.png"
+           alt="Four generated examples for each digit after epoch 10">
+      <figcaption>
+        <strong>Epoch 10.</strong> Four samples per digit.
+      </figcaption>
+    </figure>
+  </div>
+
+
+
+  <h3>2.4 Removing the Learning Rate Scheduler</h3>
+  <p>
+    The original training setup uses an exponential learning rate
+    decay scheduler. We investigate whether comparable generation
+    quality can be achieved without the scheduler.
+  </p>
+
+  <h4>Results Without a Scheduler</h4>
+  <figure class="figure">
+    <img src="img/part_b/class_conditioned_no_scheduler.png"
+         alt="Class-conditioned generation without a learning rate scheduler">
+    <figcaption>
+      <strong>Figure 7.</strong> Class-conditioned samples generated
+      after training without an exponential learning rate scheduler.
+    </figcaption>
+  </figure>
+
+  <h4>What Changed?</h4>
+
+<p>
+  To compensate for removing the scheduler, I reduced the learning rate
+  from <strong>1e-2</strong> to <strong>2e-5</strong> and increased
+  the number of training epochs from <strong>10</strong> to
+  <strong>15</strong>.
+</p>
+
+</section>
+
+
+<!-- =========================================================
+     PART 3 — BELLS & WHISTLES
+     ========================================================= -->
+
+<section class="section" id="part3">
+  <span class="pill">Part 3</span>
+  <h2>Bells &amp; Whistles</h2>
+
+  <h3>Improving the Time-Conditioned UNet</h3>
+  <p>
+    The time-conditioned model generally produces less reliable
+    samples than the class-conditioned model. We explore improvements
+    to unconditional generation while retaining time conditioning
+    without providing the digit label.
+  </p>
+
+  <h4>Improved Generation Results</h4>
+  <figure class="figure">
+    <img src="img/part_b/u_net_sampling_after_epoch_30.png"
+         alt="Improved samples from the time-conditioned UNet">
+    <figcaption>
+      <strong>Figure 8.</strong> Samples from the improved
+      time-conditioned model.
+    </figcaption>
+  </figure>
+
+
+  <h4>Approach and Results</h4>
+  <p>
+    To improve the quality of the samples, I trained the model for 30 epochs instead of 10 in the previous parts. 
+    This significally increases the quality of the samples, even if they still do not appear perfect.
+  </p>
+</section>
+
 </body></html>
