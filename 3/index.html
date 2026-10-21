@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exploring the Power of Flow Models | CS 280A</title>
+<meta name="description" content="CS 280A project exploring flow matching, conditional generation, image editing, and optical illusions.">
+<script>MathJax = { tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] }, svg: { fontCache: 'global' } };</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+:root{--ink:#20252b;--muted:#626d78;--line:#dfe4e8;--paper:#fff;--wash:#f5f7f8;--accent:#244e68;--accent-light:#eaf1f5;--max:1120px}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.68 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}.page{max-width:var(--max);width:calc(100% - 44px);margin:0 auto}.hero{padding:64px 0 42px;border-bottom:1px solid var(--line)}.eyebrow{text-transform:uppercase;letter-spacing:.13em;font-size:.75rem;font-weight:700;color:var(--accent)}h1{font-size:clamp(2.25rem,5vw,3.7rem);line-height:1.1;letter-spacing:-.045em;max-width:850px;margin:13px 0 18px;font-weight:750} .subtitle{font-size:1.12rem;color:var(--muted);max-width:760px;margin:0}.meta{display:flex;gap:10px 24px;flex-wrap:wrap;margin-top:26px;color:var(--muted);font-size:.92rem}.meta span{white-space:nowrap}.layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:44px;padding-top:34px}.toc{align-self:start;position:sticky;top:24px;padding:18px 16px;border:1px solid var(--line);border-radius:10px;background:#fff}.toc strong{display:block;font-size:.8rem;text-transform:uppercase;letter-spacing:.09em;margin:0 0 10px}.toc a{display:block;font-size:.86rem;color:#47525c;padding:4px 0;line-height:1.4}.toc .sub{padding-left:12px;font-size:.81rem}.content{min-width:0}.intro{font-size:1.04rem;color:#3f4850}.section{padding:0 0 46px;margin:0 0 44px;border-bottom:1px solid var(--line)}h2{font-size:1.85rem;letter-spacing:-.025em;line-height:1.25;margin:0 0 15px}h3{font-size:1.27rem;line-height:1.35;margin:30px 0 9px;letter-spacing:-.015em}h4{font-size:1rem;margin:0 0 7px}.section p{margin:9px 0 14px}.note{background:var(--wash);border-left:3px solid #8ba5b5;padding:13px 16px;margin:18px 0;color:#48535d;font-size:.94rem}.equation{overflow-x:auto;text-align:center;padding:15px 10px;margin:16px 0;background:#fafbfc;border:1px solid #edf0f2;border-radius:8px}.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:18px 0 24px}.gallery.three{grid-template-columns:repeat(3,minmax(0,1fr))}.gallery.four{grid-template-columns:repeat(4,minmax(0,1fr))}.gallery.five{grid-template-columns:repeat(5,minmax(0,1fr))}.figure{margin:0;min-width:0}.figure img{display:block;width:100%;aspect-ratio:1.15;object-fit:contain;background:#f1f3f4;border:1px solid #e4e8eb;border-radius:7px}.figure.wide img{aspect-ratio:16/10}.figure figcaption{font-size:.86rem;color:var(--muted);padding:7px 2px 0;line-height:1.45}.figure figcaption strong{color:#333e47;font-weight:650}.comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.comparison .figure img{aspect-ratio:1.2}.row-comparison{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0 26px}.row-comparison .figure img{aspect-ratio:1}.result-block{margin:22px 0 28px;padding:18px;border:1px solid var(--line);border-radius:10px}.result-block h4{margin-bottom:12px}.prompt{background:var(--accent-light);border-radius:6px;padding:10px 13px;color:#29485b;font-size:.92rem;margin:12px 0}.small{font-size:.9rem;color:var(--muted)}.placeholder{display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;aspect-ratio:1.15;background:repeating-linear-gradient(135deg,#f7f8f9,#f7f8f9 10px,#f0f2f4 10px,#f0f2f4 20px);border:1px dashed #b8c2c9;border-radius:7px;color:#67737d;font-size:.83rem}.placeholder code{display:block;font-size:.75rem;overflow-wrap:anywhere}.footer{padding:30px 0 50px;color:var(--muted);font-size:.86rem}.toplink{float:right}.pill{display:inline-block;padding:3px 9px;border-radius:20px;background:var(--accent-light);color:var(--accent);font-size:.78rem;font-weight:650;margin-right:5px}
+@media(max-width:850px){.layout{grid-template-columns:1fr;gap:26px}.toc{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}.toc strong{grid-column:1/-1}.gallery.five{grid-template-columns:repeat(3,minmax(0,1fr))}.gallery.four,.row-comparison{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.page{width:calc(100% - 28px)}.hero{padding:42px 0 30px}.toc{grid-template-columns:1fr 1fr}.gallery,.gallery.three,.gallery.five,.comparison{grid-template-columns:repeat(2,minmax(0,1fr))}.gallery.four,.row-comparison{grid-template-columns:1fr 1fr}.result-block{padding:12px}}
+.comparison .figure.distant-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.comparison .figure.distant-view img {
+    width: 15%;
+    height: auto;
+    margin: auto;
+}
+
+.grid-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  grid-template-rows: repeat(3, auto);
+  gap: 16px;
+  align-items: center;
+}
+
+/* Original image: left column, spanning all three rows */
+.grid-comparison .figure-main {
+  grid-column: 1;
+  grid-row: 1 / 4;
+  margin: 0;
+  align-self: center;
+}
+
+.grid-comparison .figure-main img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* Three wide images: right column, one per row */
+.grid-comparison .figure-stacked {
+  grid-column: 2;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.grid-comparison .figure-stacked img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
+}
+
+.grid-comparison figure figcaption {
+  margin-top: 6px;
+}
+
+
+/* Only affect the three stacked images in this comparison */
+.grid-comparison .figure-stacked img {
+  aspect-ratio: auto;
+  height: auto;
+  object-fit: contain;
+  background: transparent;
+  border: none;
+}
+</style>
+</head>
+<body>
+<header class="hero"><div class="page">
+<div class="eyebrow">UC Berkeley · CS 280A · Project Part A</div>
+<h1>Exploring the Power of Flow Models</h1>
+<p class="subtitle">Visualizing flow matching, sampling images from noise, and exploring text-guided image editing and optical illusions with a pretrained flow model.</p>
+<div class="meta"><span><strong>Author:</strong> [Your Name]</span><span><strong>Model:</strong> PixNerd-XXL-P16-T2I</span><span><strong>Part A</strong></span></div>
+</div></header>
+<main class="content">
+<section class="section" id="overview"><h2>Overview</h2><p class="intro">In this project, I explore how a pretrained flow model transforms noise into images, how text conditioning changes the sampling process, and how the same process can be used for image editing and optical illusions.</p><p>The central idea is to learn and follow a time-dependent velocity field that moves an image from a noise distribution toward the distribution of natural images. I first compare simple and model-based denoising methods, then use Euler integration for sampling and classifier-free guidance (CFG) for stronger prompt alignment.</p><div class="note"><strong>How to use this template:</strong> Put your image files in an <code>img/part_a/</code> folder beside this HTML file, then replace each placeholder filename in the <code>src</code> attribute with your actual filename. Update captions and observation text to reflect your own results.</div></section>
+<section class="section" id="training"><h2>1. Visualizing Training and Sampling</h2><p>Flow matching defines a path between Gaussian noise and a clean image. Training samples a time and teaches the model to predict the velocity along that path; sampling starts from noise and numerically integrates the predicted velocity field toward the clean-image endpoint.</p><div class="equation">\[x_t=(1-t)\epsilon+t x,\qquad \epsilon\sim\mathcal{N}(0,I),\quad t\in[0,1]\]</div><p>Here, \(x\) is the clean image, \(\epsilon\) is Gaussian noise, and \(t=0\) corresponds to pure noise while \(t=1\) corresponds to the clean image. For this linear path, the ground-truth velocity is \(v_t=x-\epsilon\).</p>
+<h3 id="s11">1.1 Constructing Noisy Training Inputs</h3><p>I use the same original image and the same sampled noise tensor for all three time values. </p><div class="equation">\[x_t=(1-t)\epsilon+t x\]</div><div class="gallery four">
+<figure class="figure"><img src="img/part_a/training_inputs_original.png" alt="Original input image"><figcaption><strong>Original</strong><br>Clean input image</figcaption></figure>
+<figure class="figure"><img src="img/part_a/training_inputs_t=0.25.png" alt="Noisy image at t equals 0.25"><figcaption><strong>\(t=0.25\)</strong><br>Mostly noise; faint image structure</figcaption></figure>
+<figure class="figure"><img src="img/part_a/training_inputs_t=0.5.png" alt="Noisy image at t equals 0.50"><figcaption><strong>\(t=0.50\)</strong><br>Balanced image and noise</figcaption></figure>
+<figure class="figure"><img src="img/part_a/training_inputs_t=0.75.png" alt="Noisy image at t equals 0.75"><figcaption><strong>\(t=0.75\)</strong><br>More of the original image is visible</figcaption></figure></div><p class="small">The higher t is, the less noise appear on the image and the more the image is recognizable.</p>
+<h3 id="s12">1.2 Classical Denoising</h3><p>Gaussian blur provides a non-learned baseline. Since the image contribution in \(x_t\) is scaled by \(t\), I first restore its amplitude, then apply a Gaussian filter:</p><div class="equation">\[\hat{x}_{\mathrm{blur}}=G_{\sigma}\!\left(\frac{x_t}{t}\right)\]</div><p>Noise represents versy high frequency details. Blurring suppresses high frequencies, so it helps to supress the noise of the image, but also blurs it.</p>
+<div class="result-block">
+    <h4>Gaussian blur comparison</h4>
+    <div class="comparison">
+        <figure class="figure">
+            <img src="img/part_a/training_inputs_t=0.25.png" alt="Noisy input t 0.25"><figcaption>Noisy input · \(t=0.25\)</figcaption></figure><figure class="figure"><img src="img/part_a/blur_0.25_blur sigma=8.0.png" alt="Gaussian denoised t 0.25"><figcaption>Gaussian blur · \(t=0.25\)</figcaption>
+            </figure><figure class="figure">
+                <img src="img/part_a/training_inputs_t=0.5.png" alt="Noisy input t 0.50">
+                <figcaption>Noisy input · \(t=0.50\)</figcaption></figure><figure class="figure">
+                    <img src="img/part_a/blur_0.5_blur sigma=4.0.png" alt="Gaussian denoised t 0.50"><figcaption>Gaussian blur · \(t=0.50\)
+
+                    </figcaption></figure><figure class="figure"><img src="img/part_a/training_inputs_t=0.75.png" alt="Noisy input t 0.75"><figcaption>Noisy input · \(t=0.75\)</figcaption></figure><figure class="figure">
+                        
+                        <img src="img/part_a/blur_0.75_blur sigma=2.0.png" alt="Gaussian denoised t 0.75"><figcaption>Gaussian blur · \(t=0.75\)</figcaption></figure></div></div><p class="small"></p>
+<h3 id="s13">1.3 One-Step Denoising</h3><p>The pretrained model predicts velocity rather than noise. A single prediction at the current noisy image can be extrapolated to the clean endpoint:</p><div class="equation">\[\hat{x}_{1}=x_t+(1-t)v_{\theta}(x_t,t,c)\]</div><p>I use the text condition <code>a high quality photo</code>. This one-step estimate assumes the predicted velocity remains constant from the current time to \(t=1\).</p>
+<div class="result-block"><h4>One-step denoising</h4><div class="row-comparison"><figure class="figure">
+    <img src="img/part_a/training_inputs_t=0.25.png" alt="Noisy input t 0.25"><figcaption>Noisy · \(t=0.25\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/one_step_0.25_one step.png" alt="One step estimate t 0.25"><figcaption>Estimate · \(t=0.25\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/training_inputs_t=0.5.png" alt="Noisy input t 0.50"><figcaption>Noisy · \(t=0.50\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/one_step_0.5_one step.png" alt="One step estimate t 0.50"><figcaption>Estimate · \(t=0.50\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/training_inputs_t=0.75.png" alt="Noisy input t 0.75"><figcaption>Noisy · \(t=0.75\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/one_step_0.75_one step.png" alt="One step estimate t 0.75"><figcaption>Estimate · \(t=0.75\)</figcaption></figure></div></div><p class="small">Observation: [Compare each one-step estimate with the original and with the Gaussian baseline.]</p>
+<h3 id="s14">1.4 Visualizing Velocity</h3><p>Because the original image and sampled noise are known, the ground-truth velocity is available for comparison with the model's prediction. The update from time \(t\) to the clean endpoint is the velocity multiplied by \((1-t)\).</p><div class="equation">\[v_{\mathrm{true}}=x-\epsilon,\qquad \Delta x_{\mathrm{pred}}=(1-t)v_{\theta},\qquad \Delta x_{\mathrm{true}}=(1-t)(x-\epsilon)\]</div><p>The per-pixel error is the root-mean-square difference across the RGB channels.</p>
+
+
+<div class="result-block">
+  <h4>Predicted and ground-truth updates</h4>
+  <div class="grid-comparison">
+    <!-- Left image spanning 3 rows -->
+    <figure class="figure figure-main">
+      <img src="img/part_a/training_inputs_original.png" alt="Original image">
+      <figcaption>Original image</figcaption>
+    </figure>
+
+    <!-- Right 3 images, each occupying a row naturally -->
+    <figure class="figure figure-stacked">
+      <img src="img/part_a/velocity_0.25.png" alt="Noisy t 0.25">
+    </figure>
+
+    <figure class="figure figure-stacked">
+      <img src="img/part_a/velocity_0.50.png" alt="Noisy t 0.50">
+    </figure>
+
+    <figure class="figure figure-stacked">
+      <img src="img/part_a/velocity_0.75.png" alt="Noisy t 0.75">
+    </figure>
+  </div>
+</div>
+
+
+  <h3 id="s15">1.5 Iterative Denoising with Euler Sampling</h3><p>Instead of assuming a constant velocity for the entire path, Euler sampling repeatedly evaluates the velocity at the current state and advances by a small step:</p><div class="equation">\[x_{t+\Delta t}=x_t+\Delta t\,v_{\theta}(x_t,t,c)\]</div><p>I start from the saved noisy image at \(t=0.50\), use 25 Euler updates:</p><div class="gallery three"><figure class="figure">
+    <img src="img/part_a/training_inputs_t=0.5.png" alt="Euler initial state"><figcaption>Initial state · \(t=0.50\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/trajectory_t=0.60.png" alt="Euler state at 0.60"><figcaption>Update 5 · \(t=0.60\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/trajectory_t=0.70.png" alt="Euler state at 0.70"><figcaption>Update 10 · \(t=0.70\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/trajectory_t=0.80.png" alt="Euler state at 0.80"><figcaption>Update 15 · \(t=0.80\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/trajectory_t=0.90.png" alt="Euler state at 0.90"><figcaption>Update 20 · \(t=0.90\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/trajectory_t=1.00.png" alt="Euler final state"><figcaption>Final state · \(t=1.00\)</figcaption></figure></div><h4>Denoising methods · same noisy input</h4><div class="gallery four"><figure class="figure">
+    <img src="img/part_a/training_inputs_original.png" alt="Original"><figcaption>Original</figcaption></figure><figure class="figure">
+    <img src="img/part_a/blur_0.5_blur sigma=4.0.png" alt="Gaussian blur"><figcaption>Gaussian blur</figcaption></figure><figure class="figure">
+    <img src="img/part_a/one_step_0.5_one step.png" alt="One-step estimate"><figcaption>One-step estimate</figcaption></figure><figure class="figure">
+    <img src="img/part_a/trajectory_t=1.00.png" alt="Euler denoising"><figcaption>Euler denoising</figcaption></figure></div><p class="small"></p>
+<h3 id="s16">1.6 Generating Images from Noise</h3>
+<p>Setting the starting time to zero and starting from Gaussian noise lets the model generate images from scratch. These samples use the prompt 
+    <code>a high quality photo</code>.</p><div class="gallery three"><figure class="figure">
+    <img src="img/part_a/conditional_0.png" alt="Generated sample seed 180"><figcaption>Seed 180</figcaption></figure><figure class="figure">
+    <img src="img/part_a/conditional_1.png" alt="Generated sample seed 181"><figcaption>Seed 181</figcaption></figure><figure class="figure">
+    <img src="img/part_a/conditional_2.png" alt="Generated sample seed 182"><figcaption>Seed 182</figcaption></figure><figure class="figure">
+    <img src="img/part_a/conditional_3.png" alt="Generated sample seed 183"><figcaption>Seed 183</figcaption></figure><figure class="figure">
+    <img src="img/part_a/conditional_4.png" alt="Generated sample seed 184"><figcaption>Seed 184</figcaption></figure></div><p class="small"></p>
+</section>
+<p> While the images look more real than noise, some of them look disturbing and seem to blend several "real" parts and mixing them together. </p>
+<section class="section" id="guidance"><h2>2. Conditional Generation and Guidance</h2><p>Text conditioning gives the model information about the desired image. Classifier-free guidance strengthens the effect of the prompt by combining conditional and unconditional velocity predictions.</p>
+<h3 id="s21">2.1 Classifier-Free Guidance (CFG)</h3><p>For the same image and time, I evaluate the model with the desired text prompt and with an empty prompt, then extrapolate away from the unconditional prediction:</p>
+<div class="equation">\[v_{\mathrm{CFG}}(x_t,t,c)=v_{\mathrm{uncond}}(x_t,t)+w\left(v_{\mathrm{cond}}(x_t,t,c)-v_{\mathrm{uncond}}(x_t,t)\right)\]</div>
+<p> I use Euler step size 0.1 and guidance weight \(w=7\). Same prompt: <code>a high quality photo</code>. </p>
+<div class="result-block"><h4>Same seeds with CFG : the results look more realistic than before</h4><div class="gallery three"><figure class="figure">
+    <img src="img/part_a/cfg0.png" alt="CFG sample seed 180"><figcaption>Seed 180 · CFG, \(w=7\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/cfg1.png" alt="CFG sample seed 181"><figcaption>Seed 181 · CFG, \(w=7\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/cfg2.png" alt="CFG sample seed 182"><figcaption>Seed 182 · CFG, \(w=7\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/cfg3.png" alt="CFG sample seed 183"><figcaption>Seed 183 · CFG, \(w=7\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/cfg4.png" alt="CFG sample seed 184"><figcaption>Seed 184 · CFG, \(w=7\)</figcaption></figure></div></div>
+</section>
+<section class="section" id="creative"><h2>3. Creative Applications</h2><p>For the following experiments, I use image-to-image sampling to preserve some information from an input image while allowing the model to reinterpret it.</p>
+<h3 id="s31">3.1 Image-to-Image Editing</h3><p>I add noise to the original image at a chosen starting time and then denoise it using the prompt <code>a high quality photo</code></p><div class="prompt"><strong>Prompt:</strong> a high quality photo</div><h4>Campanile</h4><div class="gallery four"><figure class="figure">
+    <img src="img/part_a/creative/edit_campanile_original.png" alt="Original Campanile"><figcaption>Original Campanile</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_campanile_t=0.02.png" alt="Campanile edit t 0.02"><figcaption>Starting time \(t=0.02\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_campanile_t=0.04.png" alt="Campanile edit t 0.04"><figcaption>Starting time \(t=0.04\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_campanile_t=0.06.png" alt="Campanile edit t 0.06"><figcaption>Starting time \(t=0.06\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_campanile_t=0.10.png" alt="Campanile edit t 0.10"><figcaption>Starting time \(t=0.10\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_campanile_t=0.14.png" alt="Campanile edit t 0.14"><figcaption>Starting time \(t=0.14\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_campanile_t=0.25.png" alt="Campanile edit t 0.25"><figcaption>Starting time \(t=0.25\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_campanile_t=0.50.png" alt="Campanile edit t 0.50"><figcaption>Starting time \(t=0.50\)</figcaption></figure></div><h4>Dixie</h4><div class="gallery four">
+        <figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_1_original.png" alt="Original Campanile"><figcaption>Original Input </figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_1_t=0.02.png" alt="Dixie edit t 0.02"><figcaption>Starting time \(t=0.02\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_1_t=0.04.png" alt="Dixie edit t 0.04"><figcaption>Starting time \(t=0.04\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_1_t=0.06.png" alt="Dixie edit t 0.06"><figcaption>Starting time \(t=0.06\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_1_t=0.10.png" alt="Dixie edit t 0.10"><figcaption>Starting time \(t=0.10\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_1_t=0.14.png" alt="Dixie edit t 0.14"><figcaption>Starting time \(t=0.14\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_1_t=0.25.png" alt="Dixie edit t 0.25"><figcaption>Starting time \(t=0.25\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_1_t=0.50.png" alt="Dixie edit t 0.50"><figcaption>Starting time \(t=0.50\)</figcaption></figure></div>
+    <h4>Jeju statues</h4><div class="gallery four">
+        <figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_2_original.png" alt="Original Campanile"><figcaption>Original Input </figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_2_t=0.02.png" alt="Dixie edit t 0.02"><figcaption>Starting time \(t=0.02\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_2_t=0.04.png" alt="Dixie edit t 0.04"><figcaption>Starting time \(t=0.04\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_2_t=0.06.png" alt="Dixie edit t 0.06"><figcaption>Starting time \(t=0.06\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_2_t=0.10.png" alt="Dixie edit t 0.10"><figcaption>Starting time \(t=0.10\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_2_t=0.14.png" alt="Dixie edit t 0.14"><figcaption>Starting time \(t=0.14\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_2_t=0.25.png" alt="Dixie edit t 0.25"><figcaption>Starting time \(t=0.25\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/creative/edit_my_image_2_t=0.50.png" alt="Dixie edit t 0.50"><figcaption>Starting time \(t=0.50\)</figcaption></figure></div>
+<h3 id="handdrawn">Editing Hand-Drawn and Web Images</h3><p>I also test the same editing procedure on a downloaded web image and two hand-drawn images. The goal was to see project those more or less realistic images to a real image.</p>
+<h4> Web Image </h4>
+
+    <div class="gallery four"><figure class="figure">
+    
+    
+    <img src="img/part_a/edit_web_image_original.png" alt="Original web image"><figcaption>Original web image from the game Mafia III</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_web_image_t=0.02.png" alt="edit t 0.02"><figcaption>\(t=0.02\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_web_image_t=0.04.png" alt="edit t 0.04"><figcaption>\(t=0.04\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_web_image_t=0.06.png" alt="edit t 0.06"><figcaption>\(t=0.06\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_web_image_t=0.10.png" alt="edit t 0.10"><figcaption>\(t=0.10\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_web_image_t=0.14.png" alt="edit t 0.14"><figcaption>\(t=0.14\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_web_image_t=0.25.png" alt="edit t 0.25"><figcaption>\(t=0.25\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_web_image_t=0.50.png" alt="edit t 0.50"><figcaption>\(t=0.50\)</figcaption></figure>
+
+</div>
+<h4> Hand-Drawn Image 1 : I tried to draw a car in the desert with clouds </h4>
+
+<div class="gallery four"><figure class="figure">
+    <img src="img/part_a/edit_drawing_2_original.png" alt="Original web image"><figcaption>Original web image</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_2_t=0.02.png" alt="edit t 0.02"><figcaption>\(t=0.02\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_2_t=0.04.png" alt="edit t 0.04"><figcaption>\(t=0.04\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_2_t=0.06.png" alt="edit t 0.06"><figcaption>\(t=0.06\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_2_t=0.10.png" alt="edit t 0.10"><figcaption>\(t=0.10\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_2_t=0.14.png" alt="edit t 0.14"><figcaption>\(t=0.14\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_2_t=0.25.png" alt="edit t 0.25"><figcaption>\(t=0.25\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_2_t=0.50.png" alt="edit t 0.50"><figcaption>\(t=0.50\)</figcaption></figure>
+</div>
+
+<h4>Hand-drawn image 2 : I tried to draw a football pitch</h4><div class="gallery four"><figure class="figure">
+    <img src="img/part_a/edit_drawing_1_original.png" alt="Original web image"><figcaption>Original web image</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_1_t=0.02.png" alt="edit t 0.02"><figcaption>\(t=0.02\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_1_t=0.04.png" alt="edit t 0.10"><figcaption>\(t=0.04\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_1_t=0.06.png" alt="edit t 0.50"><figcaption>\(t=0.06\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_1_t=0.10.png" alt="Original web image"><figcaption>\(t=0.10\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_1_t=0.14.png" alt="edit t 0.02"><figcaption>\(t=0.14\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_1_t=0.25.png" alt="edit t 0.10"><figcaption>\(t=0.25\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/edit_drawing_1_t=0.50.png" alt="edit t 0.50"><figcaption>\(t=0.50\)</figcaption></figure>
+
+</div><p class="small"></p>
+<h3 id="s32">3.2 Text-Guided Image Editing</h3><p>Here, I use the same image-to-image procedure but replace the generic prompt with a prompt describing a desired edit. The model balances the prompt with the information that remains in the noisy input.</p>
+
+<h4>Campanile → Toothbrush</h4><div class="prompt"><strong>Prompt:</strong> photograph of a toothbrush in the water</div>
+<div class="gallery four"><figure class="figure">
+    <img src="img/part_a/text_edit_campanile_original.png" alt="Original Campanile"><figcaption>Original Campanile</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_campanile_t=0.02.png" alt="Text guided Campanile t 0.02"><figcaption>\(t=0.02\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_campanile_t=0.04.png" alt="Text guided Campanile t 0.10"><figcaption>\(t=0.04\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_campanile_t=0.06.png" alt="Text guided Campanile t 0.50"><figcaption>\(t=0.06\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_campanile_t=0.10.png" alt="Original Campanile"><figcaption>\(t=0.10\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_campanile_t=0.14.png" alt="Text guided Campanile t 0.02"><figcaption>\(t=0.14\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_campanile_t=0.25.png" alt="Text guided Campanile t 0.10"><figcaption>\(t=0.25\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_campanile_t=0.50.png" alt="Text guided Campanile t 0.50"><figcaption>\(t=0.50\)</figcaption></figure>
+
+</div>
+
+<h4>Dixie → Polar Bear</h4><div class="prompt"><strong>Prompt:</strong> photograph of a polar bear in Iceland (I know there is no polar bear in Iceland)</div>
+<div class="gallery four"><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_1_original.png" alt="Original Campanile"><figcaption>Original Campanile</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_1_t=0.02.png" alt="Text guided Campanile t 0.02"><figcaption>\(t=0.02\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_1_t=0.04.png" alt="Text guided Campanile t 0.10"><figcaption>\(t=0.04\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_1_t=0.06.png" alt="Text guided Campanile t 0.50"><figcaption>\(t=0.06\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_1_t=0.10.png" alt="Original Campanile"><figcaption>\(t=0.10\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_1_t=0.14.png" alt="Text guided Campanile t 0.02"><figcaption>\(t=0.14\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_1_t=0.25.png" alt="Text guided Campanile t 0.10"><figcaption>\(t=0.25\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_1_t=0.50.png" alt="Text guided Campanile t 0.50"><figcaption>\(t=0.50\)</figcaption></figure>
+
+</div>
+
+<h4>Jeju Statues → Men</h4><div class="prompt"><strong>Prompt:</strong> men waiting in line in a forest</div>
+<div class="gallery four"><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_2_original.png" alt="Original Campanile"><figcaption>Original Campanile</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_2_t=0.02.png" alt="Text guided Campanile t 0.02"><figcaption>\(t=0.02\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_2_t=0.04.png" alt="Text guided Campanile t 0.10"><figcaption>\(t=0.04\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_2_t=0.06.png" alt="Text guided Campanile t 0.50"><figcaption>\(t=0.06\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_2_t=0.10.png" alt="Original Campanile"><figcaption>\(t=0.10\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_2_t=0.14.png" alt="Text guided Campanile t 0.02"><figcaption>\(t=0.14\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_2_t=0.25.png" alt="Text guided Campanile t 0.10"><figcaption>\(t=0.25\)</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_2_t=0.50.png" alt="Text guided Campanile t 0.50"><figcaption>\(t=0.50\)</figcaption></figure>
+
+</div>
+
+
+</div><p class="small"></p>
+<h3 id="s33">3.3 Visual Anagrams</h3><p>Visual anagrams use two prompts at once. I predict velocity for the current image with one prompt, predict velocity for the image rotated by 180° with another prompt, rotate the second velocity back, and average the two. Each Euler step therefore tries to satisfy both interpretations.</p>
+<div class="equation">\[v_{\mathrm{ana}}(x_t,t)=\frac{1}{2}\left[v_{\mathrm{CFG}}(x_t,t,c_1)+R\left(v_{\mathrm{CFG}}(R(x_t),t,c_2)\right)\right]\]</div>
+<p>Here, \(R\) rotates an image by 180° (flipping both spatial axes), and \(c_1,c_2\) are the two text prompts.</p>
+<div class="result-block"><h4>Visual anagram 1</h4><div class="prompt"><strong>Upright prompt:</strong> drawing of a squirrel drinking in a cup of water &nbsp; <strong>Rotated prompt:</strong> a drawing of a classroom</div><div class="comparison"><figure class="figure">
+    <img src="img/part_a/anagram_1.png" alt="Visual anagram one upright"><figcaption>Upright view · drawing of a squirrel drinking in a cup of water</figcaption></figure><figure class="figure">
+        <img src="img/part_a/anagram_views_1_a drawing of a classroom.png" alt="Visual anagram one rotated 180 degrees"><figcaption>Rotated 180° · a drawing of a classroom</figcaption></figure></div></div>
+        <div class="result-block"><h4>Visual anagram 2</h4><div class="prompt"><strong>Upright prompt:</strong> a painting of an old castle in the mountains &nbsp; <strong>Rotated prompt:</strong> a simplistic painting of a bear</div><div class="comparison">
+            <figure class="figure"><img src="img/part_a/anagram_views_0_a painting of an old castle in the mountains.png" alt="Visual anagram two upright"><figcaption>Upright view · a painting of an old castle in the mountains</figcaption></figure>
+            <figure class="figure"><img src="img/part_a/anagram_views_0_a simplistic painting of a bear.png" alt="Visual anagram two rotated 180 degrees"><figcaption>Rotated 180° · a simplistic painting of a bear</figcaption></figure></div></div><p class="small"></p>
+<h3 id="s34">3.4 Hybrid Images</h3><p>Hybrid images combine the low-frequency content of one prompt's predicted velocity with the high-frequency content of another. The low-pass component is a Gaussian blur; the high-pass component is the original prediction minus its low-pass version.</p>
+<div class="equation">\[v_{\mathrm{hybrid}}=G_{\sigma}*v_1+\left(v_2-G_{\sigma}*v_2\right)\]</div><p>I use a Gaussian kernel of size 265 and standard deviation 16 for 512×512 images, then use this composite velocity for the Euler update.</p>
+<div class="result-block">
+    <h4>Hybrid image 1</h4><div class="prompt"><strong>Near-view prompt :</strong> a litograph of a forest<br><strong>Distant-view prompt :</strong> an elephant</div>
+    <div class="comparison"><figure class="figure"><img src="img/part_a/hybrid_elephant.png" alt="Hybrid image one near view"><figcaption>Near view · a litograph of a forest</figcaption></figure>
+        <figure class="figure  distant-view"><img src="img/part_a/hybrid_elephant.png" alt="Hybrid image one distant view"><figcaption>Distant view · an elephant</figcaption></figure></div></div><div class="result-block"><h4>Hybrid image 2</h4>
+            <div class="prompt"><strong>Near-view prompt :</strong> an oil painting of a sandy island<br><strong>Distant-view prompt :</strong> an oil painting of a teddy bear</div><div class="comparison"><figure class="figure">
+                <img src="img/part_a/hybrid_teddy_bear_good.png" alt="Hybrid image two near view">
+                <figcaption>Near view · an oil painting of a sandy island</figcaption></figure><figure class="figure  distant-view">
+                    <img src="img/part_a/hybrid_teddy_bear_good.png" alt="Hybrid image two distant view"><figcaption>Distant view · an oil painting of a teddy bear</figcaption></figure></div>
+                </div>
+</section>
+<section class="section" id="extras"><h2>Bells and Whistles</h2><p class="small">
+    We can build visual anagram with a very similar approach as we did in the previous part, but with different tranformations ! 
+    The first one I use is taking the negative of an image. 
+    </p> <p class="small"> 
+        The second tranformation I use is : flipping the top half of the image along the x-axis and doing the same to the bottom half of the image. This forces the denoiser to connect the top and the bottom of the images, and it gives pretty cool results.  
+</p>
+    <h3>Additional visual anagrams · Negatives</h3><div class="comparison"><figure class="figure">
+        <img src="img/part_a/good_negate_views_0_a drawing of the face of a man.png" alt="Extra visual anagram one view A"><figcaption>View A · a drawing of the face of a man.png</figcaption></figure>
+        <figure class="figure"><img src="img/part_a/good_negate_views_0_a drawing of face of a woman.png" alt="Extra visual anagram one view B">
+            <figcaption>Transformed view · a drawing of face of a woman</figcaption></figure>
+        </div>
+        <div class="comparison"><figure class="figure">
+        <img src="img/part_a/negate_views_0_a litograph of cat faces.png" alt="Extra visual anagram one view A"><figcaption>View A · a litograph of cat faces.png</figcaption></figure>
+        <figure class="figure"><img src="img/part_a/negate_views_0_a litograph of a mountain lanscape.png" alt="Extra visual anagram one view B">
+            <figcaption>Transformed view · a litograph of a mountain lanscape</figcaption></figure>
+        </div>
+        <h3>Additional visual anagrams · Double Flip </h3><div class="comparison"><figure class="figure">
+            <img src="img/part_a/double_rotate_views_0_a painting of plants.png" alt="Extra visual anagram two view A"><figcaption>View A · a painting of plants</figcaption></figure><figure class="figure">
+                <img src="img/part_a/double_rotate_views_0_a painting of the bayou.png" alt="Extra visual anagram two view B"><figcaption>Transformed view · painting of the bayou</figcaption></figure>
+            
+            
+            </div>
+            
+            <div class="comparison"><figure class="figure">
+        <img src="img/part_a/double_rotate_views_1_painting of the sky.png" alt="Extra visual anagram one view A"><figcaption>View A · painting of the sky</figcaption></figure>
+        <figure class="figure"><img src="img/part_a/double_rotate_views_1_painting of the sea.png" alt="Extra visual anagram one view B">
+            <figcaption>Transformed view · painting of the sea</figcaption></figure>
+        </div>
+        <h3>Course logo</h3><div class="gallery">
+                    <figure class="figure"><img src="img/part_a/logo_golden_bear_original.png" alt="Logo input"><figcaption>Input image </figcaption></figure><figure class="figure">
+                        <img src="img/part_a/logo_golden_bear_t=0.02.png" alt="Generated course logo for CS 180/280A"><figcaption>Generated course logo</figcaption></figure></div><p class="small">
+                            The prompt used to generate this picture is : drawing of a yellow bear dressed in blue next to a camera. This uses image-to-image editing at time t = 0.02. </p>
+                        </section>
+<footer class="footer"><a class="toplink" href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">Back to top ↑</a><p>CS 280A · Exploring the Power of Flow Models · Part A</p></footer>
+</main></div>
+</body></html>
