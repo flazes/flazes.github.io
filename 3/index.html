@@ -78,23 +78,96 @@
   background: transparent;
   border: none;
 }
+
+/* Part B: smaller images with no frames or forced aspect ratios */
+#part_b .figure img {
+  width: 100%;
+  max-width: 650px;
+  height: auto;
+  aspect-ratio: auto;
+  object-fit: contain;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  margin: 0 auto;
+}
+
+/* Center standalone figures and keep them from becoming too large */
+#part_b > .figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Make loss curves and other standalone plots more compact */
+#part_b > .figure img {
+  max-width: 560px;
+}
+
+/* Keep multi-image galleries aligned and reasonably sized */
+#part_b .gallery .figure {
+  min-width: 0;
+}
+
+#part_b .gallery .figure img {
+  max-width: 100%;
+}
+
+/* Preserve the natural dimensions of wide plots and sample grids */
+#part_b .figure figcaption {
+  width: 100%;
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+/* On small screens, allow images to use the available width */
+@media (max-width: 560px) {
+  #part_b .figure img,
+  #part_b > .figure img {
+    max-width: 100%;
+  }
+}
+
+/* Add margins around the page content */
+main {
+  padding-left: 5%;
+  padding-right: 5%;
+  box-sizing: border-box;
+}
+
+/* Keep the content from becoming too wide on large screens */
+main {
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Slightly smaller margins on phones */
+@media (max-width: 560px) {
+  main {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
 </style>
 </head>
 <body>
 <header class="hero"><div class="page">
 <div class="eyebrow">UC Berkeley · CS 280A · Project Part A</div>
 <h1>Exploring the Power of Flow Models</h1>
-<p class="subtitle">Visualizing flow matching, sampling images from noise, and exploring text-guided image editing and optical illusions with a pretrained flow model.</p>
-<div class="meta"><span><strong>Author:</strong> [Your Name]</span><span><strong>Model:</strong> PixNerd-XXL-P16-T2I</span><span><strong>Part A</strong></span></div>
+<p class="subtitle">Explore flow matching, image generation, and denoising through experiments in conditioning, sampling, and training.</p>
+<div class="meta"><span><strong>Author:</strong> Fabien Lazes</span><span><strong>Model:</strong> PixNerd-XXL-P16-T2I</span><span></span></div>
 </div></header>
 <main class="content">
-<section class="section" id="overview"><h2>Overview</h2><p class="intro">In this project, I explore how a pretrained flow model transforms noise into images, how text conditioning changes the sampling process, and how the same process can be used for image editing and optical illusions.</p><p>The central idea is to learn and follow a time-dependent velocity field that moves an image from a noise distribution toward the distribution of natural images. I first compare simple and model-based denoising methods, then use Euler integration for sampling and classifier-free guidance (CFG) for stronger prompt alignment.</p><div class="note"><strong>How to use this template:</strong> Put your image files in an <code>img/part_a/</code> folder beside this HTML file, then replace each placeholder filename in the <code>src</code> attribute with your actual filename. Update captions and observation text to reflect your own results.</div></section>
-<section class="section" id="training"><h2>1. Visualizing Training and Sampling</h2><p>Flow matching defines a path between Gaussian noise and a clean image. Training samples a time and teaches the model to predict the velocity along that path; sampling starts from noise and numerically integrates the predicted velocity field toward the clean-image endpoint.</p><div class="equation">\[x_t=(1-t)\epsilon+t x,\qquad \epsilon\sim\mathcal{N}(0,I),\quad t\in[0,1]\]</div><p>Here, \(x\) is the clean image, \(\epsilon\) is Gaussian noise, and \(t=0\) corresponds to pure noise while \(t=1\) corresponds to the clean image. For this linear path, the ground-truth velocity is \(v_t=x-\epsilon\).</p>
+<section class="section" id="overview"><h2>Overview</h2><p class="intro">This project explores generative modeling through flow matching, image generation and editing, and denoising. Across both parts, experiments investigate conditioning, noise levels, sampling methods, and training choices and their effects on generated images.</p><section class="section" id="training">
+      <span class="pill">Part A</span>
+
+    <h2>1. Visualizing Training and Sampling</h2><p>Flow matching defines a path between Gaussian noise and a clean image. Training samples a time and teaches the model to predict the velocity along that path; sampling starts from noise and numerically integrates the predicted velocity field toward the clean-image endpoint.</p><div class="equation">\[x_t=(1-t)\epsilon+t x,\qquad \epsilon\sim\mathcal{N}(0,I),\quad t\in[0,1]\]</div><p>Here, \(x\) is the clean image, \(\epsilon\) is Gaussian noise, and \(t=0\) corresponds to pure noise while \(t=1\) corresponds to the clean image. For this linear path, the ground-truth velocity is \(v_t=x-\epsilon\).</p>
 <h3 id="s11">1.1 Constructing Noisy Training Inputs</h3><p>I use the same original image and the same sampled noise tensor for all three time values. </p><div class="equation">\[x_t=(1-t)\epsilon+t x\]</div><div class="gallery four">
 <figure class="figure"><img src="img/part_a/training_inputs_original.png" alt="Original input image"><figcaption><strong>Original</strong><br>Clean input image</figcaption></figure>
-<figure class="figure"><img src="img/part_a/training_inputs_t=0.25.png" alt="Noisy image at t equals 0.25"><figcaption><strong>\(t=0.25\)</strong><br>Mostly noise; faint image structure</figcaption></figure>
-<figure class="figure"><img src="img/part_a/training_inputs_t=0.5.png" alt="Noisy image at t equals 0.50"><figcaption><strong>\(t=0.50\)</strong><br>Balanced image and noise</figcaption></figure>
-<figure class="figure"><img src="img/part_a/training_inputs_t=0.75.png" alt="Noisy image at t equals 0.75"><figcaption><strong>\(t=0.75\)</strong><br>More of the original image is visible</figcaption></figure></div><p class="small">The higher t is, the less noise appear on the image and the more the image is recognizable.</p>
+<figure class="figure"><img src="img/part_a/training_inputs_t=0.25.png" alt="Noisy image at t equals 0.25"><figcaption><strong>\(t=0.25\)</strong></figcaption></figure>
+<figure class="figure"><img src="img/part_a/training_inputs_t=0.5.png" alt="Noisy image at t equals 0.50"><figcaption><strong>\(t=0.50\)</strong></figcaption></figure>
+<figure class="figure"><img src="img/part_a/training_inputs_t=0.75.png" alt="Noisy image at t equals 0.75"><figcaption><strong>\(t=0.75\)</strong></figcaption></figure></div><p class="small">The higher t is, the less noise appears in the image and the more recognizable the image becomes.</p>
 <h3 id="s12">1.2 Classical Denoising</h3><p>Gaussian blur provides a non-learned baseline. Since the image contribution in \(x_t\) is scaled by \(t\), I first restore its amplitude, then apply a Gaussian filter:</p><div class="equation">\[\hat{x}_{\mathrm{blur}}=G_{\sigma}\!\left(\frac{x_t}{t}\right)\]</div><p>Noise represents versy high frequency details. Blurring suppresses high frequencies, so it helps to supress the noise of the image, but also blurs it.</p>
 <div class="result-block">
     <h4>Gaussian blur comparison</h4>
@@ -165,7 +238,7 @@
     <img src="img/part_a/conditional_3.png" alt="Generated sample seed 183"><figcaption>Seed 183</figcaption></figure><figure class="figure">
     <img src="img/part_a/conditional_4.png" alt="Generated sample seed 184"><figcaption>Seed 184</figcaption></figure></div><p class="small"></p>
 </section>
-<p> While the images look more real than noise, some of them look disturbing and seem to blend several "real" parts and mixing them together. </p>
+<p> While the images look more real than noise, some of them look disturbing and seem to blend several "real" parts and mixing them together. The color of the images are very similar, but there is a certain diversity in terms of what images were sampled. </p>
 <section class="section" id="guidance"><h2>2. Conditional Generation and Guidance</h2><p>Text conditioning gives the model information about the desired image. Classifier-free guidance strengthens the effect of the prompt by combining conditional and unconditional velocity predictions.</p>
 <h3 id="s21">2.1 Classifier-Free Guidance (CFG)</h3><p>For the same image and time, I evaluate the model with the desired text prompt and with an empty prompt, then extrapolate away from the unconditional prediction:</p>
 <div class="equation">\[v_{\mathrm{CFG}}(x_t,t,c)=v_{\mathrm{uncond}}(x_t,t)+w\left(v_{\mathrm{cond}}(x_t,t,c)-v_{\mathrm{uncond}}(x_t,t)\right)\]</div>
@@ -175,7 +248,10 @@
     <img src="img/part_a/cfg1.png" alt="CFG sample seed 181"><figcaption>Seed 181 · CFG, \(w=7\)</figcaption></figure><figure class="figure">
     <img src="img/part_a/cfg2.png" alt="CFG sample seed 182"><figcaption>Seed 182 · CFG, \(w=7\)</figcaption></figure><figure class="figure">
     <img src="img/part_a/cfg3.png" alt="CFG sample seed 183"><figcaption>Seed 183 · CFG, \(w=7\)</figcaption></figure><figure class="figure">
-    <img src="img/part_a/cfg4.png" alt="CFG sample seed 184"><figcaption>Seed 184 · CFG, \(w=7\)</figcaption></figure></div></div>
+    <img src="img/part_a/cfg4.png" alt="CFG sample seed 184"><figcaption>Seed 184 · CFG, \(w=7\)</figcaption></figure></div>
+    
+</div>
+<p> The images sampled with CFG appear more natural. Each image makes sense if you omit the details of the faces. However there is fewer diversity of image and color in those images than the ones sampled without CFG.</p>
 </section>
 <section class="section" id="creative"><h2>3. Creative Applications</h2><p>For the following experiments, I use image-to-image sampling to preserve some information from an input image while allowing the model to reinterpret it.</p>
 <h3 id="s31">3.1 Image-to-Image Editing</h3><p>I add noise to the original image at a chosen starting time and then denoise it using the prompt <code>a high quality photo</code></p><div class="prompt"><strong>Prompt:</strong> a high quality photo</div><h4>Campanile</h4><div class="gallery four"><figure class="figure">
@@ -263,7 +339,7 @@
 
 <h4>Dixie → Polar Bear</h4><div class="prompt"><strong>Prompt:</strong> photograph of a polar bear in Iceland (I know there is no polar bear in Iceland)</div>
 <div class="gallery four"><figure class="figure">
-    <img src="img/part_a/text_edit_my_image_1_original.png" alt="Original Campanile"><figcaption>Original Campanile</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_1_original.png" alt="Original Campanile"><figcaption>Original Dixie</figcaption></figure><figure class="figure">
     <img src="img/part_a/text_edit_my_image_1_t=0.02.png" alt="Text guided Campanile t 0.02"><figcaption>\(t=0.02\)</figcaption></figure><figure class="figure">
     <img src="img/part_a/text_edit_my_image_1_t=0.04.png" alt="Text guided Campanile t 0.10"><figcaption>\(t=0.04\)</figcaption></figure><figure class="figure">
     <img src="img/part_a/text_edit_my_image_1_t=0.06.png" alt="Text guided Campanile t 0.50"><figcaption>\(t=0.06\)</figcaption></figure><figure class="figure">
@@ -276,7 +352,7 @@
 
 <h4>Jeju Statues → Men</h4><div class="prompt"><strong>Prompt:</strong> men waiting in line in a forest</div>
 <div class="gallery four"><figure class="figure">
-    <img src="img/part_a/text_edit_my_image_2_original.png" alt="Original Campanile"><figcaption>Original Campanile</figcaption></figure><figure class="figure">
+    <img src="img/part_a/text_edit_my_image_2_original.png" alt="Original Campanile"><figcaption>Original Jeju statues</figcaption></figure><figure class="figure">
     <img src="img/part_a/text_edit_my_image_2_t=0.02.png" alt="Text guided Campanile t 0.02"><figcaption>\(t=0.02\)</figcaption></figure><figure class="figure">
     <img src="img/part_a/text_edit_my_image_2_t=0.04.png" alt="Text guided Campanile t 0.10"><figcaption>\(t=0.04\)</figcaption></figure><figure class="figure">
     <img src="img/part_a/text_edit_my_image_2_t=0.06.png" alt="Text guided Campanile t 0.50"><figcaption>\(t=0.06\)</figcaption></figure><figure class="figure">
@@ -292,59 +368,58 @@
 <h3 id="s33">3.3 Visual Anagrams</h3><p>Visual anagrams use two prompts at once. I predict velocity for the current image with one prompt, predict velocity for the image rotated by 180° with another prompt, rotate the second velocity back, and average the two. Each Euler step therefore tries to satisfy both interpretations.</p>
 <div class="equation">\[v_{\mathrm{ana}}(x_t,t)=\frac{1}{2}\left[v_{\mathrm{CFG}}(x_t,t,c_1)+R\left(v_{\mathrm{CFG}}(R(x_t),t,c_2)\right)\right]\]</div>
 <p>Here, \(R\) rotates an image by 180° (flipping both spatial axes), and \(c_1,c_2\) are the two text prompts.</p>
-<div class="result-block"><h4>Visual anagram 1</h4><div class="prompt"><strong>Upright prompt:</strong> drawing of a squirrel drinking in a cup of water &nbsp; <strong>Rotated prompt:</strong> a drawing of a classroom</div><div class="comparison"><figure class="figure">
-    <img src="img/part_a/anagram_1.png" alt="Visual anagram one upright"><figcaption>Upright view · drawing of a squirrel drinking in a cup of water</figcaption></figure><figure class="figure">
-        <img src="img/part_a/anagram_views_1_a drawing of a classroom.png" alt="Visual anagram one rotated 180 degrees"><figcaption>Rotated 180° · a drawing of a classroom</figcaption></figure></div></div>
+<div class="result-block"><h4>Visual anagram 1</h4><div class="prompt"><strong>Upright prompt:</strong> a drawing of foresty landscape &nbsp; <strong>Rotated prompt:</strong> a drawing of a women face</div><div class="comparison"><figure class="figure">
+    <img src="img/part_a/anagram_views_0_a drawing of foresty landscape.png" alt="Visual anagram one upright"><figcaption>a drawing of foresty landscape</figcaption></figure><figure class="figure">
+        <img src="img/part_a/anagram_views_0_a drawing of a women face.png" alt="Visual anagram one rotated 180 degrees"><figcaption>Rotated 180° · a drawing of a women face</figcaption></figure></div></div>
         <div class="result-block"><h4>Visual anagram 2</h4><div class="prompt"><strong>Upright prompt:</strong> a painting of an old castle in the mountains &nbsp; <strong>Rotated prompt:</strong> a simplistic painting of a bear</div><div class="comparison">
-            <figure class="figure"><img src="img/part_a/anagram_views_0_a painting of an old castle in the mountains.png" alt="Visual anagram two upright"><figcaption>Upright view · a painting of an old castle in the mountains</figcaption></figure>
+            <figure class="figure"><img src="img/part_a/anagram_views_0_a painting of an old castle in the mountains.png" alt="Visual anagram two upright"><figcaption>a painting of an old castle in the mountains</figcaption></figure>
             <figure class="figure"><img src="img/part_a/anagram_views_0_a simplistic painting of a bear.png" alt="Visual anagram two rotated 180 degrees"><figcaption>Rotated 180° · a simplistic painting of a bear</figcaption></figure></div></div><p class="small"></p>
 <h3 id="s34">3.4 Hybrid Images</h3><p>Hybrid images combine the low-frequency content of one prompt's predicted velocity with the high-frequency content of another. The low-pass component is a Gaussian blur; the high-pass component is the original prediction minus its low-pass version.</p>
 <div class="equation">\[v_{\mathrm{hybrid}}=G_{\sigma}*v_1+\left(v_2-G_{\sigma}*v_2\right)\]</div><p>I use a Gaussian kernel of size 265 and standard deviation 16 for 512×512 images, then use this composite velocity for the Euler update.</p>
 <div class="result-block">
     <h4>Hybrid image 1</h4><div class="prompt"><strong>Near-view prompt :</strong> a litograph of a forest<br><strong>Distant-view prompt :</strong> an elephant</div>
-    <div class="comparison"><figure class="figure"><img src="img/part_a/hybrid_elephant.png" alt="Hybrid image one near view"><figcaption>Near view · a litograph of a forest</figcaption></figure>
-        <figure class="figure  distant-view"><img src="img/part_a/hybrid_elephant.png" alt="Hybrid image one distant view"><figcaption>Distant view · an elephant</figcaption></figure></div></div><div class="result-block"><h4>Hybrid image 2</h4>
+    <div class="comparison"><figure class="figure"><img src="img/part_a/hybrid_elephant.png" alt="Hybrid image one near view"><figcaption> a litograph of a forest</figcaption></figure>
+        <figure class="figure  distant-view"><img src="img/part_a/hybrid_elephant.png" alt="Hybrid image one distant view"><figcaption> an elephant</figcaption></figure></div></div><div class="result-block"><h4>Hybrid image 2</h4>
             <div class="prompt"><strong>Near-view prompt :</strong> an oil painting of a sandy island<br><strong>Distant-view prompt :</strong> an oil painting of a teddy bear</div><div class="comparison"><figure class="figure">
                 <img src="img/part_a/hybrid_teddy_bear_good.png" alt="Hybrid image two near view">
-                <figcaption>Near view · an oil painting of a sandy island</figcaption></figure><figure class="figure  distant-view">
-                    <img src="img/part_a/hybrid_teddy_bear_good.png" alt="Hybrid image two distant view"><figcaption>Distant view · an oil painting of a teddy bear</figcaption></figure></div>
+                <figcaption> an oil painting of a sandy island</figcaption></figure><figure class="figure  distant-view">
+                    <img src="img/part_a/hybrid_teddy_bear_good.png" alt="Hybrid image two distant view"><figcaption> an oil painting of a teddy bear</figcaption></figure></div>
                 </div>
 </section>
-<section class="section" id="extras"><h2>Bells and Whistles</h2><p class="small">
+<section class="section" id="extras"><h2>Bells and Whistles</h2><p>
     We can build visual anagram with a very similar approach as we did in the previous part, but with different tranformations ! 
     The first one I use is taking the negative of an image. 
-    </p> <p class="small"> 
-        The second tranformation I use is : flipping the top half of the image along the x-axis and doing the same to the bottom half of the image. This forces the denoiser to connect the top and the bottom of the images, and it gives pretty cool results.  
+    </p> <p> 
+        The second tranformation I used is : flipping the top half of the image along the x-axis and doing the same to the bottom half of the image. This forces the model to connect the top and the bottom of the images, and it gives pretty cool results.  
 </p>
     <h3>Additional visual anagrams · Negatives</h3><div class="comparison"><figure class="figure">
-        <img src="img/part_a/good_negate_views_0_a drawing of the face of a man.png" alt="Extra visual anagram one view A"><figcaption>View A · a drawing of the face of a man.png</figcaption></figure>
+        <img src="img/part_a/good_negate_views_0_a drawing of the face of a man.png" alt="Extra visual anagram one "><figcaption>  a drawing of the face of a man</figcaption></figure>
         <figure class="figure"><img src="img/part_a/good_negate_views_0_a drawing of face of a woman.png" alt="Extra visual anagram one view B">
-            <figcaption>Transformed view · a drawing of face of a woman</figcaption></figure>
+            <figcaption>a drawing of face of a woman</figcaption></figure>
         </div>
         <div class="comparison"><figure class="figure">
-        <img src="img/part_a/negate_views_0_a litograph of cat faces.png" alt="Extra visual anagram one view A"><figcaption>View A · a litograph of cat faces.png</figcaption></figure>
+        <img src="img/part_a/negate_views_0_a litograph of cat faces.png" alt="Extra visual anagram one "><figcaption>  a litograph of cat faces</figcaption></figure>
         <figure class="figure"><img src="img/part_a/negate_views_0_a litograph of a mountain lanscape.png" alt="Extra visual anagram one view B">
-            <figcaption>Transformed view · a litograph of a mountain lanscape</figcaption></figure>
+            <figcaption>a litograph of a mountain lanscape</figcaption></figure>
         </div>
         <h3>Additional visual anagrams · Double Flip </h3><div class="comparison"><figure class="figure">
-            <img src="img/part_a/double_rotate_views_0_a painting of plants.png" alt="Extra visual anagram two view A"><figcaption>View A · a painting of plants</figcaption></figure><figure class="figure">
-                <img src="img/part_a/double_rotate_views_0_a painting of the bayou.png" alt="Extra visual anagram two view B"><figcaption>Transformed view · painting of the bayou</figcaption></figure>
+            <img src="img/part_a/double_rotate_views_0_a painting of plants.png" alt="Extra visual anagram two "><figcaption>  a painting of plants</figcaption></figure><figure class="figure">
+                <img src="img/part_a/double_rotate_views_0_a painting of the bayou.png" alt="Extra visual anagram two view B"><figcaption>painting of the bayou</figcaption></figure>
             
             
             </div>
             
             <div class="comparison"><figure class="figure">
-        <img src="img/part_a/double_rotate_views_1_painting of the sky.png" alt="Extra visual anagram one view A"><figcaption>View A · painting of the sky</figcaption></figure>
+        <img src="img/part_a/double_rotate_views_1_painting of the sky.png" alt="Extra visual anagram one "><figcaption>  painting of the sky</figcaption></figure>
         <figure class="figure"><img src="img/part_a/double_rotate_views_1_painting of the sea.png" alt="Extra visual anagram one view B">
-            <figcaption>Transformed view · painting of the sea</figcaption></figure>
+            <figcaption>painting of the sea</figcaption></figure>
         </div>
         <h3>Course logo</h3><div class="gallery">
                     <figure class="figure"><img src="img/part_a/logo_golden_bear_original.png" alt="Logo input"><figcaption>Input image </figcaption></figure><figure class="figure">
                         <img src="img/part_a/logo_golden_bear_t=0.02.png" alt="Generated course logo for CS 180/280A"><figcaption>Generated course logo</figcaption></figure></div><p class="small">
-                            The prompt used to generate this picture is : drawing of a yellow bear dressed in blue next to a camera. This uses image-to-image editing at time t = 0.02. </p>
+                            The prompt used to generate this picture is : drawing of a yellow bear dressed in blue next to a camera. This uses text-conditioned image-to-image editing at time t = 0.02. </p>
                         </section>
-<footer class="footer"><a class="toplink" href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">Back to top ↑</a><p>CS 280A · Exploring the Power of Flow Models · Part A</p></footer>
-</main></div>
+</div>
 
 
 
@@ -361,7 +436,7 @@
     of one-step denoising as a generative approach.
   </p>
 
-  <h3>1.1 Visualizing the Noising Process</h3>
+  <h3>Visualizing the Noising Process</h3>
   <p>
     We add Gaussian noise to clean MNIST images at different noise
     levels. As the noise level increases, the original digit becomes
@@ -378,7 +453,7 @@
     </figcaption>
   </figure>
 
-  <h3>1.2 Training the Denoiser</h3>
+  <h3>Training the Denoiser</h3>
   <p>
     The UNet is trained to reconstruct clean images from noisy inputs
     using an L2 loss. The model uses a hidden dimension of 128 and
@@ -387,7 +462,7 @@
 
   <h4>Training Loss</h4>
   <figure class="figure">
-    <img src="img/part_b/loss_after_denoiser.png"
+    <img src="img/part_b/loss_after_denoiser (1).png"
          alt="Training loss curve for the single-step denoiser">
     <figcaption>
       <strong>Figure 2.</strong> Training loss throughout the
@@ -419,7 +494,7 @@
     </figure>
   </div>
 
-  <h3>1.3 Out-of-Distribution Noise Levels</h3>
+  <h3>Out-of-Distribution Noise Levels</h3>
   <p>
     The denoiser was trained using a fixed noise level of 0.5.
     We now evaluate its behavior at noise levels that were not used
@@ -438,7 +513,7 @@
 
 
 
-  <h3>1.4 Denoising Pure Noise</h3>
+  <h3>Denoising Pure Noise</h3>
   <p>
     We repeat the training process with pure Gaussian noise as the
     input, rather than adding noise to a clean image. The model is
@@ -447,20 +522,20 @@
 
   <h4>Training Loss</h4>
   <figure class="figure">
-    <img src="img/part_b/loss_train_noise_0.png"
+      <img src="img/part_b/loss_train_noise_0 (1).png"
          alt="Training loss for the pure-noise denoiser">
     <figcaption>
-      <strong>Figure 4.a</strong> Training loss when denoising pure
+      <strong>Figure 4.a</strong> Training loss when denoising pure, 1 epoch
       Gaussian noise.
     </figcaption>
   </figure>
 
     <h4>Training Loss</h4>
   <figure class="figure">
-    <img src="img/part_b/loses_train_noise_4.png"
+    <img src="img/part_b/loses_train_noise_4 (1).png"
          alt="Training loss for the pure-noise denoiser">
     <figcaption>
-      <strong>Figure 4.b</strong> Training loss when denoising pure
+      <strong>Figure 4.b</strong> Training loss when denoising pure, 5 epochs
       Gaussian noise.
     </figcaption>
   </figure>
@@ -486,8 +561,8 @@
   <h4>Discussion</h4>
   <p>
     
-    When sampling from the denoiser that was trained to denoise pure noise, every output is the same illegible pattern. It looks like
-it samples the average image of all the number in the training set. Because the model trains on pure noise, it has no idea to what direction denoise
+    When sampling from the denoiser that was trained to denoise pure noise, every output is the same illegible pattern.
+    Because the model trains on pure noise, it has no idea to what direction denoise
 and will minimize the mean squared error by predicting the average of all the numbers in the training set.
   </p>
 </section>
@@ -498,7 +573,6 @@ and will minimize the mean squared error by predicting the average of all the nu
      ========================================================= -->
 
 <section class="section" id="part_b">
-  <span class="pill">Part 2</span>
   <h2>Training a Flow Matching Model</h2>
   <p class="intro">
     Instead of mapping noise directly to a clean image in one step,
@@ -507,7 +581,7 @@ and will minimize the mean squared error by predicting the average of all the nu
     an MNIST digit.
   </p>
 
-  <h3>2.1 Time Conditioning</h3>
+  <h3>Time-Conditioned UNet</h3>
   <p>
     We extend the UNet with fully connected blocks that embed the
     normalized timestep \(t\). These embeddings modulate intermediate
@@ -529,7 +603,6 @@ and will minimize the mean squared error by predicting the average of all the nu
     \(u_t\) given the intermediate sample \(x_t\) and timestep \(t\).
   </p>
 
-  <h3>2.2 Time-Conditioned UNet</h3>
   <p>
     We train the time-conditioned UNet using randomly sampled images
     and timesteps. The model uses a hidden dimension of 64, a batch
@@ -571,7 +644,7 @@ and will minimize the mean squared error by predicting the average of all the nu
   </div>
 
 
-  <h3>2.3 Class-Conditioned UNet</h3>
+  <h3>Class-Conditioned UNet</h3>
   <p>
     We extend the model with a one-hot class-conditioning vector
     representing the target digit from 0 to 9. We apply conditioning
@@ -621,11 +694,10 @@ and will minimize the mean squared error by predicting the average of all the nu
 
 
 
-  <h3>2.4 Removing the Learning Rate Scheduler</h3>
+  <h3>Removing the Learning Rate Scheduler</h3>
   <p>
     The original training setup uses an exponential learning rate
-    decay scheduler. We investigate whether comparable generation
-    quality can be achieved without the scheduler.
+    decay scheduler. I tried here to remove the scheduler while getting similar results. 
   </p>
 
   <h4>Results Without a Scheduler</h4>
@@ -644,7 +716,7 @@ and will minimize the mean squared error by predicting the average of all the nu
   To compensate for removing the scheduler, I reduced the learning rate
   from <strong>1e-2</strong> to <strong>2e-5</strong> and increased
   the number of training epochs from <strong>10</strong> to
-  <strong>15</strong>.
+  <strong>15</strong>. 
 </p>
 
 </section>
@@ -654,7 +726,7 @@ and will minimize the mean squared error by predicting the average of all the nu
      PART 3 — BELLS & WHISTLES
      ========================================================= -->
 
-<section class="section" id="part3">
+<section class="section" id="part_b">
   <span class="pill">Part 3</span>
   <h2>Bells &amp; Whistles</h2>
 
@@ -667,11 +739,20 @@ and will minimize the mean squared error by predicting the average of all the nu
   </p>
 
   <h4>Improved Generation Results</h4>
+
+
+<figure class="figure">
+    <img src="img/part_b/u_net_sampling_after_epoch_9.png"
+         alt="Improved samples from the time-conditioned UNet">
+    <figcaption>
+      <strong>Figure 8.</strong> Samples from the original time-conditioned model after 10 epochs.
+    </figcaption>
+  </figure>
   <figure class="figure">
     <img src="img/part_b/u_net_sampling_after_epoch_30.png"
          alt="Improved samples from the time-conditioned UNet">
     <figcaption>
-      <strong>Figure 8.</strong> Samples from the improved
+      <strong>Figure 9.</strong> Samples from the improved
       time-conditioned model.
     </figcaption>
   </figure>
@@ -683,5 +764,7 @@ and will minimize the mean squared error by predicting the average of all the nu
     This significally increases the quality of the samples, even if they still do not appear perfect.
   </p>
 </section>
+</main>
+<footer class="footer"><a class="toplink" href="#top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">Back to top ↑</a><p>CS 280A · Exploring the Power of Flow Models </p></footer>
 
 </body></html>
