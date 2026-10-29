@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Project 4A — Image Warping and Mosaicing</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+  <header class="hero" id="top"><div class="page">
+    <p class="eyebrow">UC Berkeley · CS 180/280A · Project 4A</p>
+    <h1>Image Warping and Mosaicing</h1>
+    <p class="subtitle">Recover homographies, implement inverse warping, and combine photographs into image mosaics.</p>
+    <div class="meta"><span><span><strong>Methods:</strong> Homography, interpolation, blending</span></div>
+  </div></header>
+
+  <main class="page content-page">
+
+    <section id="overview" class="section intro-section">
+      <div class="section-heading"><p class="eyebrow">01 · Overview</p><h2>From point correspondences to panoramas</h2></div>
+      <div class="two-column">
+        <p>This project explores the geometry behind image mosaicing. Given corresponding points in two photographs, a projective transformation is estimated and used to align, rectify, and blend the images.</p>
+        <p>The implementation includes a least-squares homography solver, custom nearest-neighbor and bilinear interpolation, alpha-based feathering, and cylindrical projection.</p>
+      </div>
+    </section>
+
+    <section id="shooting" class="section">
+      <div class="section-heading"><p class="eyebrow">01 · A.1</p><h2>Shooting the pictures</h2></div>
+      <p class="section-lede">Both image sets were captured as projective image pairs by keeping the camera near the same center of projection and rotating it between photographs.</p>
+      <h3>Apartments</h3>
+      <div class="image-grid two-up source-grid">
+        <figure><img src="apt/left_d.jpg" alt="Apartment scene, left source photograph"><figcaption></figcaption></figure>
+        <figure><img src="apt/right_d.jpg" alt="Apartment scene, right source photograph"><figcaption></figcaption></figure>
+      </div>
+      <h3>Valley Science Building</h3>
+      <div class="image-grid two-up source-grid">
+        <figure><img src="outside/left_out.jpg" alt="Outside scene, left source photograph"><figcaption></figcaption></figure>
+        <figure><img src="outside/right_out.jpg" alt="Outside scene, right source photograph"><figcaption></figcaption></figure>
+      </div>
+    </section>
+
+    <section id="homographies" class="section">
+      <div class="section-heading"><p class="eyebrow">02 · A.2</p><h2>Recovering homographies</h2></div>
+      <div class="content-block">
+        <p>A homography maps points between two views using a $3 \times 3$ matrix with eight degrees of freedom:</p>
+        <div class="equation">$\mathbf{p'} \sim H\mathbf{p}$</div>
+        <p>For each pair of corresponding points, the code builds a linear system $Ah=b$ and solves for the eight unknown entries of $H$ with least squares. The final element is fixed to 1.</p>
+      </div>
+      <div class="result-block">
+        <h3>Apartments correspondences</h3>
+        <p class="small">Points with the same number correspond to one another.</p>
+        <div class="correspondence-grid">
+          <figure><img src="apt/source_correspondences.png" alt="Apartment left source image with numbered correspondences"><figcaption></figcaption></figure>
+          <figure><img src="apt/target_correspondences.png" alt="Apartment right target image with numbered correspondences"><figcaption></figcaption></figure>
+        </div>
+        <h4>Point coordinates</h4>
+        <div class="equation">
+          \[
+          \begin{aligned}
+          p_1&=(587,497)\mapsto(40,502), & p_2&=(595,585)\mapsto(32,594),\\
+          p_3&=(658,635)\mapsto(87,644), & p_4&=(550,363)\mapsto(22,357),\\
+          p_5&=(653,421)\mapsto(118,435), & p_6&=(599,671)\mapsto(16,685).
+          \end{aligned}
+          \]
+        </div>
+        <h4>System of equations</h4>
+        <p class="small">For each source point \((x,y)\) and target point \((u,v)\), the homography parameters are recovered from \(Ah=b\), where \(h=[h_{11},h_{12},h_{13},h_{21},h_{22},h_{23},h_{31},h_{32}]^T\).</p>
+        <div class="equation matrix-equation">
+          \[
+          \underbrace{\begin{bmatrix}
+          587&497&1&0&0&0&-587\cdot40&-497\cdot40\\
+          0&0&0&587&497&1&-587\cdot502&-497\cdot502\\
+          595&585&1&0&0&0&-595\cdot32&-585\cdot32\\
+          0&0&0&595&585&1&-595\cdot594&-585\cdot594\\
+          658&635&1&0&0&0&-658\cdot87&-635\cdot87\\
+          0&0&0&658&635&1&-658\cdot644&-635\cdot644\\
+          550&363&1&0&0&0&-550\cdot22&-363\cdot22\\
+          0&0&0&550&363&1&-550\cdot357&-363\cdot357\\
+          653&421&1&0&0&0&-653\cdot118&-421\cdot118\\
+          0&0&0&653&421&1&-653\cdot435&-421\cdot435\\
+          599&671&1&0&0&0&-599\cdot16&-671\cdot16\\
+          0&0&0&599&671&1&-599\cdot685&-671\cdot685
+          \end{bmatrix}}_{A}
+          \underbrace{\begin{bmatrix}h_{11}\\h_{12}\\h_{13}\\h_{21}\\h_{22}\\h_{23}\\h_{31}\\h_{32}\end{bmatrix}}_{h}
+          =
+          \underbrace{\begin{bmatrix}40\\502\\32\\594\\87\\644\\22\\357\\118\\435\\16\\685\end{bmatrix}}_{b}.
+          \]
+        </div>
+        <h4>Recovered homography</h4>
+        <div class="equation">
+          \[
+          H_{\text{left}\rightarrow\text{right}}=
+          \begin{bmatrix}
+          2.4937 & -0.4299 & -1165.95\\
+          1.3604 & 2.1303 & -753.16\\
+          0.002282 & -0.0002823 & 1.0000
+          \end{bmatrix}
+          \]
+        </div>
+      </div>
+      <div class="result-block">
+        <h3>Valley Science Building correspondences</h3>
+        <p class="small">Points with the same number correspond to one another.</p>
+        <div class="correspondence-grid">
+          <figure><img src="outside/left_out_correspondences.png" alt="Outside left source image with numbered correspondences"><figcaption></figcaption></figure>
+          <figure><img src="outside/right_out_correspondences.png" alt="Outside right target image with numbered correspondences"><figcaption></figcaption></figure>
+        </div>
+        <h4>Point coordinates</h4>
+        <div class="equation">
+          \[
+          \begin{aligned}
+          p_1&=(750,167)\mapsto(192,173), & p_2&=(758,77)\mapsto(200,84),\\
+          p_3&=(837,174)\mapsto(277,195), & p_4&=(616,371)\mapsto(27,379),\\
+          p_5&=(941,251)\mapsto(360,279), & p_6&=(941,438)\mapsto(359,441).
+          \end{aligned}
+          \]
+        </div>
+        <h4>System of equations</h4>
+        <p class="small">Using the left image as the source and the right image as the target:</p>
+        <div class="equation matrix-equation">
+          \[
+          \underbrace{\begin{bmatrix}
+          750&167&1&0&0&0&-750\cdot192&-167\cdot192\\
+          0&0&0&750&167&1&-750\cdot173&-167\cdot173\\
+          758&77&1&0&0&0&-758\cdot200&-77\cdot200\\
+          0&0&0&758&77&1&-758\cdot84&-77\cdot84\\
+          837&174&1&0&0&0&-837\cdot277&-174\cdot277\\
+          0&0&0&837&174&1&-837\cdot195&-174\cdot195\\
+          616&371&1&0&0&0&-616\cdot27&-371\cdot27\\
+          0&0&0&616&371&1&-616\cdot379&-371\cdot379\\
+          941&251&1&0&0&0&-941\cdot360&-251\cdot360\\
+          0&0&0&941&251&1&-941\cdot279&-251\cdot279\\
+          941&438&1&0&0&0&-941\cdot359&-438\cdot359\\
+          0&0&0&941&438&1&-941\cdot441&-438\cdot441
+          \end{bmatrix}}_{A}
+          \underbrace{\begin{bmatrix}h_{11}\\h_{12}\\h_{13}\\h_{21}\\h_{22}\\h_{23}\\h_{31}\\h_{32}\end{bmatrix}}_{h}
+          =
+          \underbrace{\begin{bmatrix}192\\173\\200\\84\\277\\195\\27\\379\\360\\279\\359\\441\end{bmatrix}}_{b}.
+          \]
+        </div>
+        <h4>Recovered homography</h4>
+        <div class="equation">
+          \[
+          H_{\text{left}\rightarrow\text{right}}=
+          \begin{bmatrix}
+          4.1867 & -0.05807 & -2477.45\\
+          1.2671 & 3.4436 & -937.24\\
+          0.003229 & -0.00008722 & 1.0000
+          \end{bmatrix}
+          \]
+        </div>
+      </div>
+    </section>
+
+    <section id="warping" class="section">
+      <div class="section-heading"><p class="eyebrow">03 · A.3</p><h2>Warping and rectification</h2></div>
+      <div class="two-column">
+        <p>Images are transformed with inverse warping so every output pixel samples from the input image. I implemented both nearest-neighbor sampling and bilinear interpolation from scratch.</p>
+        <p>In those examples, objects that are rectangular in real life don't appear exactly rectangular on the images. Recovering homographies and applying warping allows us to output the real shape of the objects. </p>
+      </div>
+      <h3>Poster</h3>
+      <div class="comparison-grid three-column">
+        <figure class="feature-figure"><img src="posters.jpeg" alt="Original poster image"><figcaption><strong>Original</strong></figcaption></figure>
+        <figure class="feature-figure"><img src="fixed_rectangles/poster_fixed_.png" alt="Poster rectified using nearest-neighbor interpolation"><figcaption><strong>Nearest neighbor</strong></figcaption></figure>
+        <figure class="feature-figure"><img src="fixed_rectangles/poster_fixed_bilinear_.png" alt="Poster rectified using bilinear interpolation"><figcaption><strong>Bilinear interpolation</strong></figcaption></figure>
+      </div>
+      <h3>Sign</h3>
+      <div class="comparison-grid three-column">
+        <figure class="feature-figure"><img src="sign.jpg" alt="Original sign image"><figcaption><strong>Original</strong></figcaption></figure>
+        <figure class="feature-figure"><img src="fixed_rectangles/sign_fixed_2_.png" alt="Sign rectified using nearest-neighbor interpolation"><figcaption><strong>Nearest neighbor</strong></figcaption></figure>
+        <figure class="feature-figure"><img src="fixed_rectangles/sign_fixed_bilinear_.png" alt="Sign rectified using bilinear interpolation"><figcaption><strong>Bilinear interpolation</strong></figcaption></figure>
+      </div>
+      <h4>Zoomed quality comparison</h4>
+      <div class="comparison-grid">
+        <figure class="feature-figure"><img src="fixed_rectangles/quality_nn.png" alt="Zoomed nearest-neighbor sign result"><figcaption><strong>Nearest neighbor</strong><span>Zoomed result</span></figcaption></figure>
+        <figure class="feature-figure"><img src="fixed_rectangles/quality_bilinear.png" alt="Zoomed bilinear sign result"><figcaption><strong>Bilinear interpolation</strong><span>Zoomed result</span></figcaption></figure>
+      </div>
+      <div class="section-lede"><strong>Comparison between Nearest neighbor and Bilinear Interpolation : </strong><span>Nearest neighbor preserves individual source pixels and is faster. Bilinear interpolation averages four neighboring pixels. 
+        Therefore it takes more time, but the results appear smoother. This can be seen in the zoomed in images just above.
+
+      </span></div>
+    </section>
+
+    <section id="mosaics" class="section">
+      <div class="section-heading"><p class="eyebrow">04 · A.4</p><h2>Blending image mosaics</h2></div>
+      <p class="section-lede">
+
+For each image pair, I first compute the homography matrix using corresponding points 
+from both images. Then, I use inverse warping to align the right image with the left image, mapping each output pixel back to its corresponding source location, allocating a canvas large enough to accommodate the transformed image. 
+ If the homography produces negative coordinates, I compute offsets to shift both images into a shared
+  coordinate system without cropping. Before warping, I compute an alpha channel using <code>ndimage.distance_transform_edt</code>, assigning larger weights to pixels farther from the image boundaries and smaller weights near the edges. Finally, I stitch the aligned images using alpha-weighted averaging in overlapping regions. 
+This feathering approach creates smoother transitions and reduces visible seams between the photographs. 
+<p class="section-lede">
+All the following images are warped using Bilinear Interpolation.
+</p>
+<div class="mosaic-list">
+        <article class="mosaic-card"><div class="mosaic-label"><span>01</span><h3>Apartments mosaic</h3><p>Indoor source pair</p></div><div class="mosaic-media"><h4>Original images</h4><div class="mosaic-sources"><img src="apt/left_d.jpg" alt="Apartment left source image"><img src="apt/right_d.jpg" alt="Apartment right source image"></div><h4>Blended mosaic</h4><img src="mosaic/mosaic_v1.3_bilinear_apt.png" alt="Apartment image mosaic"></div></article>
+        <article class="mosaic-card"><div class="mosaic-label"><span>02</span><h3>Valley Science Building mosaic</h3><p>Outdoor source pair</p></div><div class="mosaic-media"><h4>Original images</h4><div class="mosaic-sources"><img src="outside/left_out.jpg" alt="Outside left source image"><img src="outside/right_out.jpg" alt="Outside right source image"></div><h4>Blended mosaic</h4><img src="mosaic/mosaic_outside_v1.3_bilinear.png" alt="Outside image mosaic"></div></article>
+        <article class="mosaic-card"><div class="mosaic-label"><span>03</span><h3>Gateway Building mosaic</h3><p>Architectural source pair</p></div><div class="mosaic-media"><h4>Original images</h4><div class="mosaic-sources"><img src="gate/left_gate.jpg" alt="Gate left source image"><img src="gate/right_gate.jpg" alt="Gate right source image"></div><h4>Blended mosaic</h4><img src="mosaic/mosaic_gateaway_right_low_quality_v1.3_bilinear.png" alt="Gate image mosaic"></div></article>
+      </div>
+    </section>
+
+    <section id="bells" class="section final-section">
+      <div class="section-heading"><p class="eyebrow">05 · A.5</p><h2>Bells &amp; whistles</h2></div>
+      <div>
+        <p>For a wider field of view, I first project both images onto a cylindrical surface using inverse warping. I then align the cylindrical images using a translation matrix and stitch them using the same blending method as the previous mosaics.
+           I experiment with the focal length and apply a small rotational adjustment to improve alignment.</p>
+      </div>
+      <figure class="wide-figure"><img src="mosaic/mosaic_cylindre_outside_v1.5_nn_f_1500.0_phi_-0.5.png" alt="Cylindrical outside panorama"><figcaption><strong>Cylindrical panorama</strong><span>Outside scene · focal length 1500 · rotation adjustment −0.5°</span></figcaption></figure>
+    </section>
+  </main>
+
+  <footer class="footer page"><a class="toplink" href="#top">Back to top ↑</a><p>CS 180/280A · Image Warping and Mosaicing</p></footer>
+</body>
+</html>
