@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Project 4A — Image Warping and Mosaicing</title>
+  <title>Project 4A &amp; 4B — Image Mosaicing and Autostitching</title>
   <link rel="stylesheet" href="style.css">
   <script>
     window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
@@ -12,8 +12,8 @@
 </head>
 <body>
   <header class="hero" id="top"><div class="page">
-    <p class="eyebrow">UC Berkeley · CS 180/280A · Project 4A</p>
-    <h1>Image Warping and Mosaicing</h1>
+    <p class="eyebrow">UC Berkeley · CS 180/280A · Project 4A &amp; 4B</p>
+    <h1>Image Mosaicing and Autostitching</h1>
     <p class="subtitle">Recover homographies, implement inverse warping, and combine photographs into image mosaics.</p>
     <div class="meta"><span><span><strong>Methods:</strong> Homography, interpolation, blending</span></div>
   </div></header>
@@ -212,6 +212,64 @@ All the following images are warped using Bilinear Interpolation.
       </div>
       <figure class="wide-figure"><img src="mosaic/mosaic_cylindre_outside_v1.5_nn_f_1500.0_phi_-0.5.png" alt="Cylindrical outside panorama"><figcaption><strong>Cylindrical panorama</strong><span>Outside scene · focal length 1500 · rotation adjustment −0.5°</span></figcaption></figure>
     </section>
+
+    <section id="part-b" class="section part-b-section">
+      <div class="section-heading"><p class="eyebrow">Part B · Feature Matching for Autostitching</p><h2>Automatic mosaics</h2></div>
+      <p class="section-lede">In Part A, I selected point correspondences manually. In Part B, I automate correspondence selection using Harris corners, adaptive non-maximal suppression (ANMS), and small image-patch descriptors. RANSAC is then used to estimate a homography while rejecting incorrect feature matches. I reuse the warping and blending pipeline from Part A.</p>
+      <nav class="part-b-nav" aria-label="Part B sections"><a href="#b-corners">B.1 · Corners</a><a href="#b-descriptors">B.2 · Descriptors</a><a href="#b-matching">B.3 · Matching</a><a href="#b-ransac">B.4 · Automatic mosaics</a><a href="#b-panorama">B.5 · Unordered images</a></nav>
+    </section>
+
+    <section id="b-corners" class="section part-b-section">
+      <div class="section-heading"><p class="eyebrow">B.1</p><h2>Harris corners and ANMS</h2></div>
+      <p>Corners, which will become features, are detected using <code>corner_harris</code> from <code>skimage</code>. As a baseline, I select the 250 corners with the largest Harris responses. Strong responses can cluster around the same regions, which makes only using the strongest corners not ideal if regions of overlap between the images are not covered.</p>
+      <p>ANMS instead ranks corners by their suppression radius: the distance to the nearest corner with a sufficiently stronger response. With a robustness coefficient of 0.9, the comparison is against corners satisfying <code>response(current) &lt; 0.9 × response(other)</code>. 
+        Selecting 250 corners with the largest suppresion radiuses makes it so that there is a more even distribution of features across the image. </p>
+      <div class="comparison-grid"><figure class=""><a href="final_images/corners/corners_250_no_anms_station.png"><img loading="lazy" src="final_images/corners/corners_250_no_anms_station.png" alt="Station image with 250 strongest Harris corners"></a><figcaption><strong>Without ANMS</strong> · 250 strongest Harris responses.</figcaption></figure><figure class=""><a href="final_images/corners/corner_250_anms_station.png"><img loading="lazy" src="final_images/corners/corner_250_anms_station.png" alt="Station image with 250 ANMS-selected corners"></a><figcaption><strong>With ANMS</strong> · 250 corners selected by suppression radius.</figcaption></figure></div>
+    </section>
+
+    <section id="b-descriptors" class="section part-b-section">
+      <div class="section-heading"><p class="eyebrow">B.2</p><h2>Feature descriptor extraction</h2></div>
+      <p>For each selected corner, I extract a 40×40 grayscale patch, blur it with a 5×5 Gaussian kernel, and resize it to 8×8. This captures a larger neighborhood, reduces the noise and makes future feature matching more efficient. The patches are also normalized, by substracting its mean and dividing by its standard deviation. </p>
+      <p class="small">Each pair below shows the original 40×40 patch and its 8×8 downsampled appearance. The saved 8×8 images show intensities before normalization.</p>
+      <div class="patch-gallery"><article class="patch-card"><h3>Feature 1</h3><div class="patch-pair"><figure class="patch-figure"><a href="final_images/feature_descriptor_extraction/patch_4_full_station.png"><img loading="lazy" src="final_images/feature_descriptor_extraction/patch_4_full_station.png" alt="Feature 4 original 40 by 40 station patch"></a><figcaption>40×40 source patch</figcaption></figure><figure class="patch-figure"><a href="final_images/feature_descriptor_extraction/patch_4_downsampled_station.png"><img loading="lazy" src="final_images/feature_descriptor_extraction/patch_4_downsampled_station.png" alt="Feature 4 downsampled 8 by 8 patch"></a><figcaption>8×8 downsampled patch</figcaption></figure></div></article><article class="patch-card"><h3>Feature 2</h3><div class="patch-pair"><figure class="patch-figure"><a href="final_images/feature_descriptor_extraction/patch_7_full_station.png"><img loading="lazy" src="final_images/feature_descriptor_extraction/patch_7_full_station.png" alt="Feature 7 original 40 by 40 station patch"></a><figcaption>40×40 source patch</figcaption></figure><figure class="patch-figure"><a href="final_images/feature_descriptor_extraction/patch_7_downsampled_station.png"><img loading="lazy" src="final_images/feature_descriptor_extraction/patch_7_downsampled_station.png" alt="Feature 7 downsampled 8 by 8 patch"></a><figcaption>8×8 downsampled patch</figcaption></figure></div></article><article class="patch-card"><h3>Feature 3</h3><div class="patch-pair"><figure class="patch-figure"><a href="final_images/feature_descriptor_extraction/patch_11_full_station.png"><img loading="lazy" src="final_images/feature_descriptor_extraction/patch_11_full_station.png" alt="Feature 11 original 40 by 40 station patch"></a><figcaption>40×40 source patch</figcaption></figure><figure class="patch-figure"><a href="final_images/feature_descriptor_extraction/patch_11_downsampled_station.png"><img loading="lazy" src="final_images/feature_descriptor_extraction/patch_11_downsampled_station.png" alt="Feature 11 downsampled 8 by 8 patch"></a><figcaption>8×8 downsampled patch</figcaption></figure></div></article><article class="patch-card"><h3>Feature 4</h3><div class="patch-pair"><figure class="patch-figure"><a href="final_images/feature_descriptor_extraction/patch_26_full_station.png"><img loading="lazy" src="final_images/feature_descriptor_extraction/patch_26_full_station.png" alt="Feature 26 original 40 by 40 station patch"></a><figcaption>40×40 source patch</figcaption></figure><figure class="patch-figure"><a href="final_images/feature_descriptor_extraction/patch_26_downsampled_station.png">
+        <img loading="lazy" src="final_images/feature_descriptor_extraction/patch_26_downsampled_station.png" alt="Feature 26 downsampled 8 by 8 patch"></a><figcaption>8×8 downsampled patch</figcaption></figure></div></article></div>
+    </section>
+
+    <section id="b-matching" class="section part-b-section">
+      <div class="section-heading"><p class="eyebrow">B.3</p><h2>Matching features </h2></div>
+      <p>I compare normalized descriptors using the sum of squared differences (SSD). For each descriptor in the first image, I find its nearest and second-nearest neighbors in the second image. I apply Lowe’s ratio test separately to each query descriptor: I divide its nearest-neighbor SSD by its own second-nearest-neighbor SSD and retain ratios below 0.6.
+         If a ratio is close to 0, it means that the first match is likely to be right, whereas if the two nearest neighbors have a similar score (ratio close to 1), then we are not so sure about which is the real match, so we discard it.</p>
+      <p>I run matching in both directions and keep mutual matches: a feature in the first image must select a feature in the second image that also selects it back.</p>
+      <p class="small">Three matched descriptor pairs from the station images are shown below. Each saved descriptor is 8×8 and displayed at 160×160 pixels. Each row pairs corresponding features from the two images.</p><div class="match-gallery"><article class="patch-card"><h3>Match 1</h3><div class="patch-pair"><figure class="patch-figure"><a href="final_images/matched_features/im1_18.png"><img loading="lazy" src="final_images/matched_features/im1_18.png" alt="Station image one descriptor for match 1"></a><figcaption>Image 1 · 8×8</figcaption></figure><figure class="patch-figure"><a href="final_images/matched_features/im2_18.png"><img loading="lazy" src="final_images/matched_features/im2_18.png" alt="Station image two descriptor for match 1"></a><figcaption>Image 2 · 8×8</figcaption></figure></div></article><article class="patch-card"><h3>Match 2</h3><div class="patch-pair"><figure class="patch-figure"><a href="final_images/matched_features/im1_22.png"><img loading="lazy" src="final_images/matched_features/im1_22.png" alt="Station image one descriptor for match 2"></a><figcaption>Image 1 · 8×8</figcaption></figure><figure class="patch-figure"><a href="final_images/matched_features/im2_22.png"><img loading="lazy" src="final_images/matched_features/im2_22.png" alt="Station image two descriptor for match 2"></a><figcaption>Image 2 · 8×8</figcaption></figure></div></article><article class="patch-card"><h3>Match 3</h3><div class="patch-pair"><figure class="patch-figure"><a href="final_images/matched_features/im1_2.png"><img loading="lazy" src="final_images/matched_features/im1_25.png" alt="Station image one descriptor for match 3"></a><figcaption>Image 1 · 8×8</figcaption></figure><figure class="patch-figure"><a href="final_images/matched_features/im2_25.png"><img loading="lazy" src="final_images/matched_features/im2_25.png" alt="Station image two descriptor for match 3"></a><figcaption>Image 2 · 8×8</figcaption></figure></div></article></div>
+    </section>
+
+    <section id="b-ransac" class="section part-b-section">
+      <div class="section-heading"><p class="eyebrow">B.4</p><h2>Robust homographies and automatic mosaics</h2></div>
+      <p>
+        Because some visually similar patches can have different physical locations, I implement RANSAC to reject incorrect matches. 
+        Four mutual correspondences are sampled and used to estimate a homography mapping the second image into the first, like in Part A. 
+        All other matched features computed from the previous parts are then projected, and their Euclidian distance from the corresponding points in the first image are computed. 
+        Matches with errors under 5 pixels are counted as inliers.
+        </p>
+      <p>  
+        After 10,000 iterations, I refit the homography using all inliers from the model that accounted the highest number of inliers. 
+        Before estimating each homogrpahy, I center each point set and scale its mean distance from the origin to √2 to improve numerical stability.</p>
+      <p>Finally, I warp with bilinear interpolation and blend using the alpha masks from Part A. Below are saved automatic and manually aligned results.</p><h3>Outdoor</h3><div class="comparison-grid mosaic-comparison"><figure class=""><a href="final_images/manual_stitch/mosaic_outside_v1.3_bilinear.png"><img loading="lazy" src="final_images/manual_stitch/mosaic_outside_v1.3_bilinear.png" alt="Outdoor mosaic using manually selected correspondences"></a><figcaption><strong>Manual correspondences</strong></figcaption></figure><figure class=""><a href="final_images/auto_stitch/mosaic_outdoor_auto.png"><img loading="lazy" src="final_images/auto_stitch/mosaic_outdoor_auto.png" alt="Outdoor mosaic using automatic feature matching"></a><figcaption><strong>Automatic correspondences + RANSAC</strong></figcaption></figure></div><h3>Market</h3><div class="comparison-grid mosaic-comparison"><figure class=""><a href="final_images/manual_stitch/mosaic_market_v1.3_bilinear.png"><img loading="lazy" src="final_images/manual_stitch/mosaic_market_v1.3_bilinear.png" alt="Market mosaic using manually selected correspondences"></a><figcaption><strong>Manual correspondences</strong></figcaption></figure><figure class=""><a href="final_images/auto_stitch/mosaic_market_auto.png"><img loading="lazy" src="final_images/auto_stitch/mosaic_market_auto.png" alt="Market mosaic using automatic feature matching"></a><figcaption><strong>Automatic correspondences + RANSAC</strong>
+      </figcaption></figure></div><h3>Station</h3><div class="comparison-grid mosaic-comparison"><figure class=""><a href="final_images/manual_stitch/mosaic_station_v1.3_bilinear.png"><img loading="lazy" src="final_images/manual_stitch/mosaic_station_v1.3_bilinear.png" alt="Station mosaic using manually selected correspondences"></a><figcaption><strong>Manual correspondences</strong></figcaption></figure><figure class=""><a href="final_images/auto_stitch/mosaic_station_auto.png"><img loading="lazy" src="final_images/auto_stitch/mosaic_station_auto.png" alt="Station mosaic using automatic feature matching"></a><figcaption><strong>Automatic correspondences + RANSAC</strong></figcaption></figure></div>
+
+    <section id="b-panorama" class="section part-b-section">
+      <div class="section-heading"><p class="eyebrow">B.5 · Bells &amp; whistles</p><h2>Panorama recognition from unordered images</h2></div>
+      <p> For the Bells and Whistles, I stitch mosaics from unordered sets of images. 
+        I detect corners and extract descriptors for every image, then match all image pairs in both directions. I build a graph with an image at each node and weight each edge by the smaller of the two directional match counts. 
+        This allows to see which images should be stitched together. If a pair of images has a very low number 
+        of matched features, the two images probably shouldn't be stitched together.</p>
+      <p>A maximum spanning tree selects strong connections between images. I choose a node with the highest tree degree as the initial reference, 
+        to reduce stretching and distortion. The first pair is aligned with RANSAC and blended. For each subsequent image, I detect features again on the growing mosaic, match the new image to it, estimate another homography, and blend the image with the current mosaic.</p>
+      <p>This allows the input list of images to be unordered. </p>
+
+      <p> Below are mosaics composed from three and four images. Different runs with shuffled input lists produce very similar results. Some differences appear due to the randomness present in the RANSAC algorithm.   </p>
+      <h3>Street panorama</h3><figure class="wide-figure"><a href="final_images/bells_and_whistles/mosaic_street_5_image_250_feature_b.png"><img loading="lazy" src="final_images/bells_and_whistles/mosaic_street_5_image_250_feature_b.png" alt="Street panorama assembled from an unordered set of images"></a><figcaption><strong>Street panorama</strong> Result of automatic ordering and stitching.</figcaption></figure><h3>Additional unordered-set results</h3><div class="comparison-grid"><figure class=""><a href="final_images/bells_and_whistles/mosaic_street_4_image_worked.png"><img loading="lazy" src="final_images/bells_and_whistles/mosaic_street_4_image_worked.png" alt="Additional four-image street mosaic"></a><figcaption> Four-image result, with the same set as the image above, but slightly different result.</figcaption></figure><figure class=""><a href="final_images/bells_and_whistles/mosaic_bus_fixed.png"><img loading="lazy" src="final_images/bells_and_whistles/mosaic_bus_fixed.png" alt="Another four-image street mosaic"></a><figcaption> Three images stitching from another unordered set</figcaption></figure></div>
+
   </main>
 
   <footer class="footer page"><a class="toplink" href="#top">Back to top ↑</a><p>CS 180/280A · Image Warping and Mosaicing</p></footer>
